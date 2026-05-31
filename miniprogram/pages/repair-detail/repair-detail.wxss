@@ -1,0 +1,12 @@
+.desc { margin: 14rpx 0; color: #555; }
+.imgs { display: flex; gap: 12rpx; }
+.thumb { width: 140rpx; height: 140rpx; border-radius: 10rpx; }
+.timeline { margin-top: 16rpx; }
+.tl-item { display: flex; padding-bottom: 28rpx; position: relative; }
+.tl-dot { width: 16rpx; height: 16rpx; border-radius: 50%; background: #2b6cb0; margin: 8rpx 20rpx 0 0; }
+.tl-body { flex: 1; border-left: 1rpx solid #e2e8f0; margin-left: -12rpx; padding-left: 24rpx; }
+.tl-status { font-weight: 600; }
+.tl-time { font-size: 22rpx; }
+.actions { flex-wrap: wrap; gap: 16rpx; justify-content: flex-start; }
+.act { padding: 12rpx 28rpx; border: 1rpx solid #2b6cb0; color: #2b6cb0; border-radius: 30rpx; font-size: 26rpx; }
+.input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin: 18rpx 0; }

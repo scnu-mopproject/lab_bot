@@ -1,0 +1,14 @@
+.date-pick { color: #2b6cb0; }
+.input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin: 20rpx 0; }
+.legend { font-size: 24rpx; color: #666; margin-bottom: 20rpx; }
+.dot { display: inline-block; width: 20rpx; height: 20rpx; border-radius: 4rpx; margin: 0 8rpx 0 24rpx; vertical-align: middle; }
+.dot-free { background: #c6f6d5; }
+.dot-sel { background: #2b6cb0; }
+.dot-busy { background: #e2e8f0; }
+.grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.slot { width: calc((100% - 36rpx) / 4); box-sizing: border-box; padding: 16rpx 8rpx; border-radius: 10rpx; text-align: center; }
+.slot-time { font-size: 24rpx; }
+.slot-note { font-size: 18rpx; margin-top: 4rpx; }
+.slot-free { background: #c6f6d5; color: #22543d; }
+.slot-sel { background: #2b6cb0; color: #fff; }
+.slot-busy { background: #edf2f7; color: #a0aec0; }

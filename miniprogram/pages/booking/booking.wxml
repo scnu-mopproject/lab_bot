@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="hd">选择实验室预约</view>
+  <view class="card room" wx:for="{{rooms}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="row">
+      <view class="title">{{item.name}}</view>
+      <view class="tag tag-blue">{{item.capacity}} 人</view>
+    </view>
+    <view class="muted">📍 {{item.location || '位置待补充'}}</view>
+    <view class="muted">{{item.description || ''}}</view>
+    <view class="muted">开放 {{item.open_time}} - {{item.close_time}}</view>
+  </view>
+  <view class="muted empty" wx:if="{{rooms.length === 0}}">暂无可预约实验室</view>
+</view>

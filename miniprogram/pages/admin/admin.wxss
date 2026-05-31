@@ -1,0 +1,15 @@
+.seg { display: flex; background: #fff; border-radius: 12rpx; padding: 8rpx; margin-bottom: 20rpx; }
+.seg-i { flex: 1; text-align: center; padding: 16rpx 0; border-radius: 10rpx; font-size: 26rpx; color: #666; }
+.seg-on { background: #2b6cb0; color: #fff; }
+.hint { margin-bottom: 16rpx; }
+.empty { text-align: center; margin-top: 80rpx; }
+.btns { margin-top: 20rpx; gap: 20rpx; justify-content: flex-start; }
+.approve { background: #2b6cb0; color: #fff; padding: 12rpx 40rpx; border-radius: 30rpx; }
+.reject { border: 1rpx solid #e53e3e; color: #e53e3e; padding: 12rpx 40rpx; border-radius: 30rpx; }
+.field { margin: 20rpx 0; }
+.date-pick { color: #2b6cb0; }
+.input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin: 14rpx 0; }
+.area { height: 160rpx; }
+.upload { background: #edf2f7; color: #2b6cb0; border-radius: 10rpx; margin: 16rpx 0; }
+.result { margin-top: 20rpx; }
+.del { color: #e53e3e; font-size: 24rpx; }

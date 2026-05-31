@@ -1,0 +1,21 @@
+<view class="login">
+  <view class="logo">🔬</view>
+  <view class="app-name">实验室一体化管理助手</view>
+  <view class="sub">场地预约 · 设备报修 · 业务咨询</view>
+
+  <button class="btn-primary login-btn" bindtap="onSSOLogin">校园统一认证登录</button>
+
+  <view class="dev" wx:if="{{showDev}}">
+    <view class="muted dev-title">本地调试登录（mock 模式）</view>
+    <input class="input" placeholder="学号/工号" value="{{ssoId}}" bindinput="onInput" data-k="ssoId" />
+    <input class="input" placeholder="姓名" value="{{name}}" bindinput="onInput" data-k="name" />
+    <view class="role-row">
+      <view class="role {{role==='student'?'role-on':''}}" data-r="student" bindtap="onRole">学生</view>
+      <view class="role {{role==='teacher'?'role-on':''}}" data-r="teacher" bindtap="onRole">教师</view>
+      <view class="role {{role==='admin'?'role-on':''}}" data-r="admin" bindtap="onRole">管理员</view>
+    </view>
+    <button class="dev-btn" bindtap="onDevLogin">调试登录</button>
+  </view>
+
+  <view class="toggle muted" bindtap="toggleDev">{{showDev ? '收起调试入口' : '开发者调试入口'}}</view>
+</view>

@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="card user">
+    <view class="avatar">{{user.name ? user.name[0] : '?'}}</view>
+    <view>
+      <view class="title">{{user.name}}</view>
+      <view class="muted">{{roleText[user.role]}} · {{user.sso_id}}</view>
+      <view class="muted">{{user.college || ''}}</view>
+    </view>
+  </view>
+
+  <view class="card admin-entry" wx:if="{{user.role === 'admin'}}" bindtap="goAdmin">
+    <view class="title">🛠 管理后台</view>
+    <view class="muted">预约审批 · 报修流转 · 课表导入 · 知识库</view>
+  </view>
+
+  <view class="card">
+    <view class="title">我的预约</view>
+    <view class="bk" wx:for="{{bookings}}" wx:key="id">
+      <view class="row">
+        <view>{{item.room_name}}</view>
+        <view class="tag {{bkClass[item.status]}}">{{bkText[item.status]}}</view>
+      </view>
+      <view class="muted">{{item.start_time}} ~ {{item.end_time}}</view>
+      <view class="muted" wx:if="{{item.purpose}}">用途：{{item.purpose}}</view>
+      <view class="cancel" wx:if="{{item.status === 'pending' || item.status === 'approved'}}"
+            data-id="{{item.id}}" bindtap="cancel">取消预约</view>
+    </view>
+    <view class="muted" wx:if="{{bookings.length === 0}}">暂无预约</view>
+  </view>
+
+  <button class="logout" bindtap="logout">退出登录</button>
+</view>

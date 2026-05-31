@@ -1,0 +1,16 @@
+.login {
+  padding: 120rpx 60rpx;
+  text-align: center;
+}
+.logo { font-size: 120rpx; }
+.app-name { font-size: 40rpx; font-weight: 700; margin-top: 20rpx; }
+.sub { color: #888; margin-top: 12rpx; margin-bottom: 80rpx; }
+.login-btn { margin-top: 40rpx; }
+.dev { margin-top: 60rpx; text-align: left; background: #fff; padding: 30rpx; border-radius: 16rpx; }
+.dev-title { margin-bottom: 16rpx; }
+.input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin-bottom: 16rpx; }
+.role-row { display: flex; gap: 16rpx; margin-bottom: 20rpx; }
+.role { flex: 1; text-align: center; padding: 16rpx; border: 1rpx solid #e2e8f0; border-radius: 10rpx; }
+.role-on { background: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+.dev-btn { background: #edf2f7; color: #2b6cb0; border-radius: 10rpx; }
+.toggle { margin-top: 40rpx; }

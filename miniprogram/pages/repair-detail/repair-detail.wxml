@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="card">
+    <view class="row">
+      <view class="title">{{r.device_name}}</view>
+      <view class="tag {{statusClass[r.status]}}">{{statusText[r.status]}}</view>
+    </view>
+    <view class="muted">{{r.room_name}} · 报修人 {{r.reporter_name}}</view>
+    <view class="desc">{{r.description}}</view>
+    <view class="imgs">
+      <image wx:for="{{r.images}}" wx:key="*this" src="{{item}}" mode="aspectFill" class="thumb" bindtap="preview" data-src="{{item}}" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="title">处理进度</view>
+    <view class="timeline">
+      <view class="tl-item" wx:for="{{r.logs}}" wx:key="time">
+        <view class="tl-dot"></view>
+        <view class="tl-body">
+          <view class="tl-status">{{statusText[item.status] || item.status}}</view>
+          <view class="muted">{{item.operator}} {{item.note ? '· ' + item.note : ''}}</view>
+          <view class="muted tl-time">{{item.time}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 管理员流转 -->
+  <view class="card" wx:if="{{isAdmin && r.status !== 'closed'}}">
+    <view class="title">流转处理</view>
+    <view class="row actions">
+      <view class="act" wx:for="{{nextStatuses}}" wx:key="*this" data-s="{{item}}" bindtap="pick">{{statusText[item]}}</view>
+    </view>
+    <input class="input" placeholder="处理说明（选填）" value="{{note}}" bindinput="onNote" />
+    <button class="btn-primary" wx:if="{{picked}}" bindtap="doTransition">确认更新为「{{statusText[picked]}}」</button>
+  </view>
+</view>

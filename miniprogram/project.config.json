@@ -1,0 +1,15 @@
+{
+  "description": "实验室一体化管理智能体小程序",
+  "miniprogramRoot": "./",
+  "appid": "touristappid",
+  "projectname": "lab_bot",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "latest"
+}

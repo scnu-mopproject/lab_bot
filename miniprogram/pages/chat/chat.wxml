@@ -1,0 +1,25 @@
+<view class="chat">
+  <scroll-view scroll-y class="msgs" scroll-into-view="{{anchor}}" scroll-with-animation>
+    <view class="welcome" wx:if="{{messages.length === 0}}">
+      <view class="title">👋 我是实验室管理助手</view>
+      <view class="muted">可以问我关于场地预约、设备报修、实验室使用的问题。</view>
+      <view class="quick">
+        <view class="q" wx:for="{{quick}}" wx:key="*this" data-q="{{item}}" bindtap="askQuick">{{item}}</view>
+      </view>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="idx" id="m{{index}}" class="msg {{item.role}}">
+      <view class="bubble">{{item.content}}</view>
+      <view class="sources" wx:if="{{item.sources && item.sources.length}}">
+        <text class="muted">参考：</text>
+        <text class="muted" wx:for="{{item.sources}}" wx:for-item="s" wx:key="question">{{s.question}}；</text>
+      </view>
+    </view>
+    <view id="m{{messages.length}}"></view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input class="ipt" placeholder="输入你的问题…" value="{{draft}}" bindinput="onInput" confirm-type="send" bindconfirm="send" />
+    <button class="send btn-primary" bindtap="send" loading="{{loading}}">发送</button>
+  </view>
+</view>

@@ -1,0 +1,31 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/booking/booking",
+    "pages/booking-detail/booking-detail",
+    "pages/repair/repair",
+    "pages/repair-detail/repair-detail",
+    "pages/chat/chat",
+    "pages/profile/profile",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#2b6cb0",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "实验室管理助手",
+    "backgroundColor": "#f5f6f8"
+  },
+  "tabBar": {
+    "color": "#888888",
+    "selectedColor": "#2b6cb0",
+    "backgroundColor": "#ffffff",
+    "list": [
+      { "pagePath": "pages/booking/booking", "text": "场地预约" },
+      { "pagePath": "pages/repair/repair", "text": "设备报修" },
+      { "pagePath": "pages/chat/chat", "text": "业务咨询" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

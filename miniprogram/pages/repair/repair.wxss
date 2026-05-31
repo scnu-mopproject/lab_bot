@@ -1,0 +1,13 @@
+.tabs { margin-bottom: 20rpx; }
+.tab { padding: 12rpx 28rpx; border-radius: 30rpx; background: #fff; margin-right: 16rpx; font-size: 26rpx; }
+.tab-on { background: #2b6cb0; color: #fff; }
+.add { margin-left: auto; color: #2b6cb0; font-weight: 600; }
+.desc { margin-top: 10rpx; color: #555; }
+.empty { text-align: center; margin-top: 80rpx; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 24rpx 24rpx 0 0; padding: 30rpx; z-index: 11; }
+.input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin: 14rpx 0; }
+.area { height: 140rpx; }
+.upload { background: #edf2f7; color: #2b6cb0; border-radius: 10rpx; font-size: 26rpx; }
+.imgs { display: flex; gap: 12rpx; margin: 14rpx 0; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 10rpx; }

@@ -1,0 +1,63 @@
+<view class="container">
+  <view class="seg">
+    <view class="seg-i {{tab===t.k?'seg-on':''}}" wx:for="{{tabs}}" wx:for-item="t" wx:key="k"
+          data-k="{{t.k}}" bindtap="switchTab">{{t.label}}</view>
+  </view>
+
+  <!-- 预约审批 -->
+  <block wx:if="{{tab==='booking'}}">
+    <view class="muted hint">仅显示待审批预约（自动审批开启时通常为空）</view>
+    <view class="card" wx:for="{{bookings}}" wx:key="id">
+      <view class="row"><view class="title">{{item.room_name}}</view><view class="tag tag-orange">待审批</view></view>
+      <view class="muted">{{item.user_name}} · {{item.start_time}} ~ {{item.end_time}}</view>
+      <view class="muted" wx:if="{{item.purpose}}">用途：{{item.purpose}}</view>
+      <view class="row btns">
+        <view class="approve" data-id="{{item.id}}" bindtap="review" data-ok="true">通过</view>
+        <view class="reject" data-id="{{item.id}}" bindtap="review" data-ok="false">驳回</view>
+      </view>
+    </view>
+    <view class="muted empty" wx:if="{{bookings.length===0}}">暂无待审批预约</view>
+  </block>
+
+  <!-- 报修流转 -->
+  <block wx:if="{{tab==='repair'}}">
+    <view class="card" wx:for="{{repairs}}" wx:key="id" bindtap="goRepair" data-id="{{item.id}}">
+      <view class="row"><view class="title">{{item.device_name}}</view><view class="tag tag-blue">{{statusText[item.status]}}</view></view>
+      <view class="muted">{{item.room_name}} · {{item.reporter_name}}</view>
+      <view class="muted">点击进入处理 ›</view>
+    </view>
+    <view class="muted empty" wx:if="{{repairs.length===0}}">暂无报修工单</view>
+  </block>
+
+  <!-- 课表导入 -->
+  <block wx:if="{{tab==='schedule'}}">
+    <view class="card">
+      <view class="title">批量导入课表</view>
+      <view class="muted">上传 CSV/Excel，列：room_name, weekday, start_period, end_period, start_week, end_week, course_name</view>
+      <view class="row field"><text>学期第一周周一</text>
+        <picker mode="date" value="{{termStart}}" bindchange="onTermStart"><view class="date-pick">{{termStart}} ›</view></picker>
+      </view>
+      <button class="upload" bindtap="chooseFile">{{fileName || '选择课表文件'}}</button>
+      <button class="btn-primary" bindtap="doImport" wx:if="{{filePath}}">开始导入</button>
+      <view class="result" wx:if="{{importResult}}">
+        <view>新增 {{importResult.created}} 条，跳过 {{importResult.skipped}} 条</view>
+        <view class="muted" wx:for="{{importResult.conflicts}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- FAQ 知识库 -->
+  <block wx:if="{{tab==='faq'}}">
+    <view class="card">
+      <view class="title">新增 FAQ</view>
+      <input class="input" placeholder="问题" value="{{faqForm.question}}" bindinput="onFaq" data-k="question" />
+      <textarea class="input area" placeholder="答案" value="{{faqForm.answer}}" bindinput="onFaq" data-k="answer" />
+      <input class="input" placeholder="关键词（逗号分隔，选填）" value="{{faqForm.keywords}}" bindinput="onFaq" data-k="keywords" />
+      <button class="btn-primary" bindtap="addFaq">保存</button>
+    </view>
+    <view class="card" wx:for="{{faqs}}" wx:key="id">
+      <view class="row"><view class="title">{{item.question}}</view><view class="del" data-id="{{item.id}}" bindtap="delFaq">删除</view></view>
+      <view class="muted">{{item.answer}}</view>
+    </view>
+  </block>
+</view>

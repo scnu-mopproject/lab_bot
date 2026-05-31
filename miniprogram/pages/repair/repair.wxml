@@ -1,0 +1,33 @@
+<view class="container">
+  <view class="row tabs">
+    <view class="tab {{scope==='mine'?'tab-on':''}}" data-s="mine" bindtap="switchScope">我的报修</view>
+    <view class="tab {{scope==='all'?'tab-on':''}}" data-s="all" bindtap="switchScope" wx:if="{{isAdmin}}">全部工单</view>
+    <view class="add" bindtap="openForm">+ 报修</view>
+  </view>
+
+  <view class="card item" wx:for="{{list}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="row">
+      <view class="title">{{item.device_name}}</view>
+      <view class="tag {{statusClass[item.status]}}">{{statusText[item.status]}}</view>
+    </view>
+    <view class="muted">{{item.room_name}} · {{item.reporter_name}}</view>
+    <view class="desc">{{item.description}}</view>
+  </view>
+  <view class="muted empty" wx:if="{{list.length === 0}}">暂无报修记录</view>
+
+  <!-- 报修表单 -->
+  <view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+  <view class="sheet" wx:if="{{showForm}}">
+    <view class="title">提交报修</view>
+    <picker range="{{rooms}}" range-key="name" bindchange="onRoom">
+      <view class="input">{{form.roomName || '选择实验室 ›'}}</view>
+    </picker>
+    <input class="input" placeholder="设备名称" value="{{form.device_name}}" bindinput="onInput" data-k="device_name" />
+    <textarea class="input area" placeholder="故障描述" value="{{form.description}}" bindinput="onInput" data-k="description" />
+    <button class="upload" bindtap="chooseImg">上传照片（{{form.images.length}}）</button>
+    <view class="imgs">
+      <image wx:for="{{form.images}}" wx:key="*this" src="{{item}}" mode="aspectFill" class="thumb" />
+    </view>
+    <button class="btn-primary" bindtap="submit">提交</button>
+  </view>
+</view>

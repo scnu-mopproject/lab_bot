@@ -1,0 +1,15 @@
+.chat { display: flex; flex-direction: column; height: 100vh; }
+.msgs { flex: 1; padding: 24rpx; box-sizing: border-box; }
+.welcome { padding: 40rpx 20rpx; }
+.quick { margin-top: 30rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.q { background: #fff; padding: 20rpx; border-radius: 12rpx; color: #2b6cb0; }
+.msg { margin-bottom: 24rpx; display: flex; flex-direction: column; }
+.msg.user { align-items: flex-end; }
+.msg.assistant { align-items: flex-start; }
+.bubble { max-width: 78%; padding: 20rpx 24rpx; border-radius: 16rpx; line-height: 1.5; white-space: pre-wrap; }
+.msg.user .bubble { background: #2b6cb0; color: #fff; border-bottom-right-radius: 4rpx; }
+.msg.assistant .bubble { background: #fff; color: #333; border-bottom-left-radius: 4rpx; }
+.sources { max-width: 78%; margin-top: 8rpx; font-size: 22rpx; }
+.input-bar { display: flex; padding: 16rpx 24rpx; background: #fff; gap: 16rpx; align-items: center; }
+.ipt { flex: 1; background: #f1f3f5; border-radius: 30rpx; padding: 18rpx 28rpx; }
+.send { width: 140rpx; font-size: 28rpx; }

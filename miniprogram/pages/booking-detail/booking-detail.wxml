@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="card">
+    <view class="title">{{room.name}}</view>
+    <view class="muted">📍 {{room.location}} · {{room.capacity}} 人</view>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <text>选择日期</text>
+      <picker mode="date" value="{{date}}" start="{{today}}" bindchange="onDate">
+        <view class="date-pick">{{date}} ›</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="legend">
+      <text class="dot dot-free"></text>空闲
+      <text class="dot dot-sel"></text>已选
+      <text class="dot dot-busy"></text>占用
+    </view>
+    <view class="grid">
+      <view
+        wx:for="{{slots}}"
+        wx:key="start"
+        class="slot {{item.available ? (item.selected ? 'slot-sel' : 'slot-free') : 'slot-busy'}}"
+        data-idx="{{index}}"
+        bindtap="onSlot">
+        <view class="slot-time">{{item.timeLabel}}</view>
+        <view class="slot-note" wx:if="{{item.label}}">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{selStart !== null}}">
+    <view>已选时段：{{selText}}</view>
+    <input class="input" placeholder="用途（选填）" value="{{purpose}}" bindinput="onPurpose" />
+    <button class="btn-primary" bindtap="submit">提交预约</button>
+  </view>
+</view>
