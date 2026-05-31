@@ -1,7 +1,8 @@
-"""管理员路由：预约审批、报修流转、课表导入、FAQ 维护、实验室管理。"""
+"""管理员路由：看板、报表导出、预约审批、报修流转、课表导入、FAQ 维护、实验室管理。"""
 from datetime import date
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,13 +15,65 @@ from app.models.room import Room
 from app.models.user import User
 from app.schemas.booking import BookingOut, BookingReview
 from app.schemas.chat import FAQIn, FAQOut
+from app.schemas.dashboard import DashboardOut
 from app.schemas.repair import RepairOut, RepairTransition
 from app.schemas.room import RoomCreate, RoomOut
 from app.schemas.schedule import ScheduleImportResult
-from app.services import repair_service
+from app.services import report_service, repair_service
+from app.services.dashboard_service import build_dashboard
 from app.services.schedule_import import import_schedule
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(get_current_admin)])
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def _xlsx_response(content: bytes, *, ascii_name: str, display_name: str) -> Response:
+    # 头部必须可 latin-1 编码：filename 用 ASCII 兜底，filename* 提供 UTF-8 中文名
+    disposition = (f'attachment; filename="{ascii_name}"; '
+                   f"filename*=UTF-8''{quote(display_name)}")
+    return Response(content=content, media_type=XLSX_MIME,
+                    headers={"Content-Disposition": disposition})
+
+
+# ---------- 看板 ----------
+@router.get("/dashboard", response_model=DashboardOut)
+def dashboard(db: Session = Depends(get_db)):
+    return build_dashboard(db)
+
+
+# ---------- 报表导出 ----------
+@router.get("/reports/bookings.xlsx")
+def export_bookings(
+    start: date | None = Query(None, description="起始日期 YYYY-MM-DD"),
+    end: date | None = Query(None, description="结束日期 YYYY-MM-DD"),
+    status: str | None = None,
+    room_id: int | None = None,
+    source: str | None = Query(None, description="user / course"),
+    db: Session = Depends(get_db),
+):
+    content = report_service.build_bookings_report(
+        db, start=start, end=end, status=status, room_id=room_id, source=source
+    )
+    suffix = f"_{start}_{end}" if start and end else ""
+    return _xlsx_response(content, ascii_name=f"bookings{suffix}.xlsx",
+                          display_name=f"预约报表{suffix}.xlsx")
+
+
+@router.get("/reports/repairs.xlsx")
+def export_repairs(
+    start: date | None = Query(None, description="起始日期 YYYY-MM-DD"),
+    end: date | None = Query(None, description="结束日期 YYYY-MM-DD"),
+    status: str | None = None,
+    room_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    content = report_service.build_repairs_report(
+        db, start=start, end=end, status=status, room_id=room_id
+    )
+    suffix = f"_{start}_{end}" if start and end else ""
+    return _xlsx_response(content, ascii_name=f"repairs{suffix}.xlsx",
+                          display_name=f"报修报表{suffix}.xlsx")
 
 
 # ---------- 实验室管理 ----------

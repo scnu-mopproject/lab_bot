@@ -70,3 +70,22 @@ def test_full_flow():
     r = client.post("/api/chat", headers=student, json={"message": "怎么预约实验室？"})
     assert r.status_code == 200
     assert r.json()["reply"]
+
+    # 看板
+    r = client.get("/api/admin/dashboard", headers=admin)
+    assert r.status_code == 200
+    dj = r.json()
+    assert dj["summary"]["open_repairs"] >= 0
+    assert "submitted" not in dj["repair_status"] or dj["repair_status"]["assigned"] >= 1
+    assert any(h["question"] for h in dj["hot_questions"])  # 提问已被统计
+
+    # 看板需管理员
+    assert client.get("/api/admin/dashboard", headers=student).status_code == 403
+
+    # 报表导出（Excel）
+    r = client.get("/api/admin/reports/bookings.xlsx?start=2030-01-01&end=2030-12-31", headers=admin)
+    assert r.status_code == 200
+    assert r.content[:2] == b"PK"  # xlsx = zip
+    assert "spreadsheetml" in r.headers["content-type"]
+    r = client.get("/api/admin/reports/repairs.xlsx", headers=admin)
+    assert r.status_code == 200 and r.content[:2] == b"PK"

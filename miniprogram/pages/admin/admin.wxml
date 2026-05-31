@@ -4,6 +4,76 @@
           data-k="{{t.k}}" bindtap="switchTab">{{t.label}}</view>
   </view>
 
+  <!-- 看板 -->
+  <block wx:if="{{tab==='dashboard'}}">
+    <view class="kpis" wx:if="{{dashboard}}">
+      <view class="kpi"><view class="kpi-num">{{dashboard.summary.pending_bookings}}</view><view class="kpi-lb">待审批预约</view></view>
+      <view class="kpi"><view class="kpi-num">{{dashboard.summary.open_repairs}}</view><view class="kpi-lb">待维修设备</view></view>
+      <view class="kpi"><view class="kpi-num">{{dashboard.summary.today_bookings}}</view><view class="kpi-lb">今日预约</view></view>
+      <view class="kpi"><view class="kpi-num">{{dashboard.summary.active_rooms}}</view><view class="kpi-lb">开放实验室</view></view>
+    </view>
+
+    <view class="card" wx:if="{{dashboard}}">
+      <view class="title">待审批预约</view>
+      <view class="ln" wx:for="{{dashboard.pending_bookings}}" wx:key="id">
+        <view class="row"><text class="ln-main">{{item.room_name}}</text><text class="muted">{{item.user_name}}</text></view>
+        <view class="muted sm">{{item.start_time}} ~ {{item.end_time}}</view>
+      </view>
+      <view class="muted sm" wx:if="{{dashboard.pending_bookings.length===0}}">暂无待审批</view>
+    </view>
+
+    <view class="card" wx:if="{{dashboard}}">
+      <view class="title">待维修设备</view>
+      <view class="bar-row" wx:for="{{repairBars}}" wx:key="key">
+        <text class="bar-lb">{{item.label}}</text>
+        <view class="bar-bg"><view class="bar-fill {{item.key==='done'||item.key==='closed'?'bar-green':'bar-blue'}}" style="width:{{item.pct}}%"></view></view>
+        <text class="bar-val">{{item.count}}</text>
+      </view>
+      <view class="ln" wx:for="{{dashboard.pending_repairs}}" wx:key="id" bindtap="goRepair" data-id="{{item.id}}">
+        <view class="row"><text class="ln-main">{{item.device_name}}</text><text class="tag tag-blue">{{statusText[item.status]}}</text></view>
+        <view class="muted sm">{{item.room_name}} · {{item.created_at}}</view>
+      </view>
+    </view>
+
+    <view class="card" wx:if="{{dashboard}}">
+      <view class="title">高频咨询问题（近30天）</view>
+      <view class="bar-row" wx:for="{{dashboard.hot_questions}}" wx:key="question">
+        <text class="bar-lb wide">{{item.question}}</text>
+        <view class="bar-bg"><view class="bar-fill bar-orange" style="width:{{item.pct}}%"></view></view>
+        <text class="bar-val">{{item.count}}</text>
+      </view>
+      <view class="muted sm" wx:if="{{dashboard.hot_questions.length===0}}">暂无咨询数据</view>
+    </view>
+
+    <view class="card" wx:if="{{dashboard && dashboard.room_usage.length}}">
+      <view class="title">实验室使用热度（近30天）</view>
+      <view class="bar-row" wx:for="{{dashboard.room_usage}}" wx:key="room_name">
+        <text class="bar-lb wide">{{item.room_name}}</text>
+        <view class="bar-bg"><view class="bar-fill bar-blue" style="width:{{item.pct}}%"></view></view>
+        <text class="bar-val">{{item.count}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 报表导出 -->
+  <block wx:if="{{tab==='report'}}">
+    <view class="card">
+      <view class="title">报表导出</view>
+      <view class="muted sm">按时间段筛选并导出 Excel，可在微信内预览或转发保存</view>
+      <view class="seg sub-seg">
+        <view class="seg-i {{report.type===rt.k?'seg-on':''}}" wx:for="{{reportTypes}}" wx:for-item="rt" wx:key="k"
+              data-k="{{rt.k}}" bindtap="pickReportType">{{rt.label}}</view>
+      </view>
+      <view class="row field"><text>起始日期</text>
+        <picker mode="date" value="{{report.start}}" bindchange="onReportStart"><view class="date-pick">{{report.start}} ›</view></picker>
+      </view>
+      <view class="row field"><text>结束日期</text>
+        <picker mode="date" value="{{report.end}}" bindchange="onReportEnd"><view class="date-pick">{{report.end}} ›</view></picker>
+      </view>
+      <button class="btn-primary" bindtap="exportReport">导出 Excel</button>
+    </view>
+  </block>
+
   <!-- 预约审批 -->
   <block wx:if="{{tab==='booking'}}">
     <view class="muted hint">仅显示待审批预约（自动审批开启时通常为空）</view>

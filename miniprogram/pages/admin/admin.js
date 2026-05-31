@@ -9,14 +9,18 @@ function fmtDate(d) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
+const REPAIR_ALL = ['submitted', 'assigned', 'in_progress', 'done', 'closed'];
+
 Page({
   data: {
-    tab: 'booking',
+    tab: 'dashboard',
     tabs: [
-      { k: 'booking', label: '预约审批' },
-      { k: 'repair', label: '报修流转' },
-      { k: 'schedule', label: '课表导入' },
+      { k: 'dashboard', label: '看板' },
+      { k: 'booking', label: '审批' },
+      { k: 'repair', label: '报修' },
+      { k: 'schedule', label: '课表' },
       { k: 'faq', label: '知识库' },
+      { k: 'report', label: '报表' },
     ],
     bookings: [],
     repairs: [],
@@ -27,6 +31,15 @@ Page({
     fileName: '',
     importResult: null,
     statusText: STATUS_TEXT,
+    // 看板
+    dashboard: null,
+    repairBars: [],
+    // 报表
+    report: { type: 'bookings', start: '', end: '' },
+    reportTypes: [
+      { k: 'bookings', label: '预约报表' },
+      { k: 'repairs', label: '报修报表' },
+    ],
   },
 
   onShow() {
@@ -36,6 +49,11 @@ Page({
       wx.navigateBack();
       return;
     }
+    if (!this.data.report.start) {
+      const now = new Date();
+      const ago = new Date(now.getTime() - 30 * 86400000);
+      this.setData({ 'report.start': fmtDate(ago), 'report.end': fmtDate(now) });
+    }
     this.loadTab();
   },
 
@@ -44,9 +62,28 @@ Page({
   },
 
   loadTab() {
-    if (this.data.tab === 'booking') this.loadBookings();
+    if (this.data.tab === 'dashboard') this.loadDashboard();
+    else if (this.data.tab === 'booking') this.loadBookings();
     else if (this.data.tab === 'repair') this.loadRepairs();
     else if (this.data.tab === 'faq') this.loadFaqs();
+  },
+
+  async loadDashboard() {
+    try {
+      const d = await api.get('/api/admin/dashboard');
+      // 报修状态分布转成可渲染的条形数据
+      const total = REPAIR_ALL.reduce((s, k) => s + (d.repair_status[k] || 0), 0) || 1;
+      const repairBars = REPAIR_ALL.map((k) => ({
+        key: k, label: STATUS_TEXT[k], count: d.repair_status[k] || 0,
+        pct: Math.round(((d.repair_status[k] || 0) / total) * 100),
+      }));
+      // 高频问题按最大值归一化用于画条
+      const maxQ = Math.max(1, ...d.hot_questions.map((q) => q.count));
+      d.hot_questions = d.hot_questions.map((q) => ({ ...q, pct: Math.round((q.count / maxQ) * 100) }));
+      const maxU = Math.max(1, ...d.room_usage.map((q) => q.count));
+      d.room_usage = d.room_usage.map((q) => ({ ...q, pct: Math.round((q.count / maxU) * 100) }));
+      this.setData({ dashboard: d, repairBars });
+    } catch (e) {}
   },
 
   async loadBookings() {
@@ -124,5 +161,40 @@ Page({
   },
   async delFaq(e) {
     try { await api.del('/api/admin/faqs/' + e.currentTarget.dataset.id); this.loadFaqs(); } catch (e) {}
+  },
+
+  // ---------- 报表导出 ----------
+  pickReportType(e) { this.setData({ 'report.type': e.currentTarget.dataset.k }); },
+  onReportStart(e) { this.setData({ 'report.start': e.detail.value }); },
+  onReportEnd(e) { this.setData({ 'report.end': e.detail.value }); },
+
+  exportReport() {
+    const app = getApp();
+    const { type, start, end } = this.data.report;
+    if (start && end && start > end) {
+      wx.showToast({ title: '起始日期不能晚于结束', icon: 'none' });
+      return;
+    }
+    const q = [];
+    if (start) q.push('start=' + start);
+    if (end) q.push('end=' + end);
+    const url = `${app.globalData.baseUrl}/api/admin/reports/${type}.xlsx${q.length ? '?' + q.join('&') : ''}`;
+    wx.showLoading({ title: '生成中' });
+    wx.downloadFile({
+      url,
+      header: { Authorization: 'Bearer ' + app.globalData.token },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.statusCode !== 200) { wx.showToast({ title: '导出失败', icon: 'none' }); return; }
+        // 打开 Excel（可在微信内预览/转发保存）
+        wx.openDocument({
+          filePath: res.tempFilePath,
+          fileType: 'xlsx',
+          showMenu: true,
+          fail: () => wx.showToast({ title: '已下载，无法预览', icon: 'none' }),
+        });
+      },
+      fail: () => { wx.hideLoading(); wx.showToast({ title: '下载失败', icon: 'none' }); },
+    });
   },
 });
