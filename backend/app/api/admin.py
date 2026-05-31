@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Respon
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_admin
 from app.models.booking import Booking
@@ -16,6 +17,7 @@ from app.models.user import User
 from app.schemas.booking import BookingOut, BookingReview
 from app.schemas.chat import FAQIn, FAQOut
 from app.schemas.dashboard import DashboardOut
+from app.schemas.member import MemberOut, RoleUpdate
 from app.schemas.repair import RepairOut, RepairTransition
 from app.schemas.room import RoomCreate, RoomOut
 from app.schemas.schedule import ScheduleImportResult
@@ -215,3 +217,45 @@ def delete_faq(faq_id: int, db: Session = Depends(get_db)):
     db.delete(faq)
     db.commit()
     return {"ok": True}
+
+
+# ---------- 成员管理 ----------
+VALID_ROLES = {"student", "teacher", "admin"}
+
+
+def _member_out(u: User) -> MemberOut:
+    out = MemberOut.model_validate(u)
+    out.is_whitelisted = u.sso_id in settings.admin_sso_id_set
+    return out
+
+
+@router.get("/users", response_model=list[MemberOut])
+def list_users(keyword: str | None = None, role: str | None = None,
+               db: Session = Depends(get_db)):
+    stmt = select(User).order_by(User.role.desc(), User.id)
+    if role:
+        stmt = stmt.where(User.role == role)
+    if keyword:
+        like = f"%{keyword}%"
+        stmt = stmt.where((User.name.like(like)) | (User.sso_id.like(like)))
+    return [_member_out(u) for u in db.scalars(stmt).all()]
+
+
+@router.put("/users/{user_id}/role", response_model=MemberOut)
+def update_user_role(user_id: int, body: RoleUpdate, db: Session = Depends(get_db),
+                     admin: User = Depends(get_current_admin)):
+    if body.role not in VALID_ROLES:
+        raise HTTPException(400, f"非法角色，仅支持 {VALID_ROLES}")
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "用户不存在")
+    # 防呆：不能取消自己的管理员权限，避免误操作把自己锁在外面
+    if user.id == admin.id and body.role != "admin":
+        raise HTTPException(400, "不能取消自己的管理员权限")
+    # 白名单成员降级无意义（下次登录会被自动提升），直接拦截并提示
+    if user.sso_id in settings.admin_sso_id_set and body.role != "admin":
+        raise HTTPException(400, "该用户在管理员白名单中，请先从 ADMIN_SSO_IDS 配置移除")
+    user.role = body.role
+    db.commit()
+    db.refresh(user)
+    return _member_out(user)

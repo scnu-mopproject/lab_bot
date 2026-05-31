@@ -10,7 +10,7 @@
 
   <view class="card admin-entry" wx:if="{{user.role === 'admin'}}" bindtap="goAdmin">
     <view class="title">🛠 管理后台</view>
-    <view class="muted">预约审批 · 报修流转 · 课表导入 · 知识库</view>
+    <view class="muted">看板 · 审批 · 报修 · 成员 · 课表 · 知识库 · 报表</view>
   </view>
 
   <view class="card">

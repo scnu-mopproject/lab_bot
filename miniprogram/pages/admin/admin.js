@@ -18,6 +18,7 @@ Page({
       { k: 'dashboard', label: '看板' },
       { k: 'booking', label: '审批' },
       { k: 'repair', label: '报修' },
+      { k: 'member', label: '成员' },
       { k: 'schedule', label: '课表' },
       { k: 'faq', label: '知识库' },
       { k: 'report', label: '报表' },
@@ -40,6 +41,10 @@ Page({
       { k: 'bookings', label: '预约报表' },
       { k: 'repairs', label: '报修报表' },
     ],
+    // 成员管理
+    members: [],
+    memberKeyword: '',
+    roleText: { student: '学生', teacher: '教师', admin: '管理员' },
   },
 
   onShow() {
@@ -65,7 +70,44 @@ Page({
     if (this.data.tab === 'dashboard') this.loadDashboard();
     else if (this.data.tab === 'booking') this.loadBookings();
     else if (this.data.tab === 'repair') this.loadRepairs();
+    else if (this.data.tab === 'member') this.loadMembers();
     else if (this.data.tab === 'faq') this.loadFaqs();
+  },
+
+  // ---------- 成员管理 ----------
+  async loadMembers() {
+    try {
+      const q = this.data.memberKeyword ? { keyword: this.data.memberKeyword } : {};
+      this.setData({ members: await api.get('/api/admin/users', q) });
+    } catch (e) {}
+  },
+  onMemberSearch(e) {
+    this.setData({ memberKeyword: e.detail.value });
+  },
+  searchMembers() { this.loadMembers(); },
+
+  async toggleAdmin(e) {
+    const { id, sso, admin: isAdmin, lock } = e.currentTarget.dataset;
+    if (lock) {
+      wx.showToast({ title: '白名单成员需改配置', icon: 'none' });
+      return;
+    }
+    const me = getApp().globalData.userInfo;
+    if (me && me.sso_id === sso && isAdmin) {
+      wx.showToast({ title: '不能取消自己', icon: 'none' });
+      return;
+    }
+    const nextRole = isAdmin ? 'student' : 'admin';
+    const ok = await new Promise((r) => wx.showModal({
+      title: isAdmin ? '取消其管理员权限？' : '设为管理员？',
+      success: (m) => r(m.confirm),
+    }));
+    if (!ok) return;
+    try {
+      await api.put(`/api/admin/users/${id}/role`, { role: nextRole });
+      wx.showToast({ title: '已更新', icon: 'success' });
+      this.loadMembers();
+    } catch (e) {}
   },
 
   async loadDashboard() {

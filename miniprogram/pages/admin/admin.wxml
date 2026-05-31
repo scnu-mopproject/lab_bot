@@ -55,6 +55,33 @@
     </view>
   </block>
 
+  <!-- 成员管理 -->
+  <block wx:if="{{tab==='member'}}">
+    <view class="search-bar">
+      <input class="search-ipt" placeholder="搜索姓名 / 学工号" value="{{memberKeyword}}"
+             bindinput="onMemberSearch" confirm-type="search" bindconfirm="searchMembers" />
+      <view class="search-btn" bindtap="searchMembers">搜索</view>
+    </view>
+    <view class="muted hint">白名单成员（标记 🔒）由 ADMIN_SSO_IDS 配置控制，不可在此降级</view>
+    <view class="card mb" wx:for="{{members}}" wx:key="id">
+      <view class="row">
+        <view>
+          <view class="ln-main">{{item.name}}
+            <text class="tag {{item.role==='admin'?'tag-blue':'tag-gray'}} role-tag">{{roleText[item.role]}}</text>
+            <text wx:if="{{item.is_whitelisted}}" class="lock">🔒</text>
+          </view>
+          <view class="muted sm">{{item.sso_id}}{{item.college ? ' · ' + item.college : ''}}</view>
+        </view>
+        <view class="mbtn {{item.role==='admin'?'mbtn-off':'mbtn-on'}}"
+              data-id="{{item.id}}" data-sso="{{item.sso_id}}" data-admin="{{item.role==='admin'}}"
+              data-lock="{{item.is_whitelisted}}" bindtap="toggleAdmin">
+          {{item.role==='admin' ? '取消管理员' : '设为管理员'}}
+        </view>
+      </view>
+    </view>
+    <view class="muted empty" wx:if="{{members.length===0}}">无成员</view>
+  </block>
+
   <!-- 报表导出 -->
   <block wx:if="{{tab==='report'}}">
     <view class="card">

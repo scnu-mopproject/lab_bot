@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     # 预约策略：是否自动通过（否则需管理员审批）
     booking_auto_approve: bool = True
 
+    # 管理员白名单：逗号分隔的 sso_id（学号/工号）。命中者登录即自动赋予 admin 角色。
+    admin_sso_ids: str = ""
+
+    @property
+    def admin_sso_id_set(self) -> set[str]:
+        return {s.strip() for s in self.admin_sso_ids.split(",") if s.strip()}
+
     # AI
     llm_provider: str = "mock"
     llm_api_key: str = ""

@@ -41,6 +41,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | `SSO_MOCK` | `true` 时统一认证走本地模拟，可用 `/api/auth/dev-login` 调试登录 |
 | `WECHAT_MOCK` | `true` 时微信登录 code2session 走本地模拟 |
 | `BOOKING_AUTO_APPROVE` | 预约是否免审批直接通过 |
+| `ADMIN_SSO_IDS` | 管理员白名单（逗号分隔学工号），命中者登录即自动成为 admin；其余管理员由后台「成员管理」授权 |
 | `LLM_PROVIDER` | `mock`/`claude`/`openai-compatible`，咨询机器人后端 |
 | `SSO_SERVICE_URL` | CAS 回调地址，需在校内统一认证后台登记 |
 

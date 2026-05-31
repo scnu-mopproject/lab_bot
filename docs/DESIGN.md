@@ -95,6 +95,9 @@
 - **课表批量导入**：上传 CSV/Excel（实验室/星期/节次/起止周/课程名），解析展开为多条 `course` 预约。
 - **报修流转**：分配处理人、更新状态、记录日志。
 - **FAQ 维护**：增删改知识库条目。
+- **成员管理（角色授权）**：管理员可在后台检索用户、把师生**设为/取消管理员**。判定 admin 的唯一依据是 `User.role == "admin"`（后端 `get_current_admin` 实时查库）。两条赋权途径：
+  - **白名单**：`ADMIN_SSO_IDS` 配置逗号分隔的学号/工号，命中者登录即自动 `admin`（解决"第一个管理员从哪来"，且不依赖学校返回的 userType）。
+  - **后台 CRUD**：`PUT /api/admin/users/{id}/role`，已有管理员授权他人。防呆：不能取消自己、不能在后台降级白名单成员（应改配置）。
 - **数据看板**：汇总待审批预约 / 待维修设备 / 今日预约 / 开放实验室数；展示待审批预约列表、报修状态分布、**高频咨询问题 Top N**（近 30 天，由 `ChatLog` 聚合）、实验室使用热度。
 - **报表导出**：按时间段 + 状态 + 实验室 + 来源筛选，导出 **Excel(xlsx)**（预约报表 / 报修报表），含中文表头与列宽，前端 `wx.downloadFile` + `wx.openDocument` 直接预览/转发。
 
@@ -111,6 +114,7 @@
 | 咨询 | `POST /api/chat` |
 | 管理 | `GET /api/admin/bookings`、`POST /api/admin/bookings/{id}/review`、`POST /api/admin/repairs/{id}/transition`、`POST /api/admin/schedules/import`、FAQ CRUD |
 | 看板/报表 | `GET /api/admin/dashboard`、`GET /api/admin/reports/bookings.xlsx`、`GET /api/admin/reports/repairs.xlsx`（均支持 `start`/`end`/`status` 等筛选） |
+| 成员管理 | `GET /api/admin/users?keyword=&role=`、`PUT /api/admin/users/{id}/role` |
 
 ## 7. 目录结构
 

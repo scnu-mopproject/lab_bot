@@ -22,14 +22,18 @@ def _issue_token(user: User) -> TokenOut:
 
 def _upsert_user(db: Session, *, sso_id: str, name: str, role: str,
                  college: str | None, openid: str | None) -> User:
+    # 白名单优先：命中者一律 admin（确保后续把人加进白名单后，其下次登录即被提升）
+    whitelisted = sso_id in settings.admin_sso_id_set
     user = db.scalar(select(User).where(User.sso_id == sso_id))
     if not user:
-        user = User(sso_id=sso_id, name=name, role=role, college=college)
+        user = User(sso_id=sso_id, name=name, role="admin" if whitelisted else role, college=college)
         db.add(user)
     else:
         user.name = name or user.name
         if college:
             user.college = college
+        if whitelisted and user.role != "admin":
+            user.role = "admin"
     if openid:
         user.openid = openid
     db.commit()

@@ -89,3 +89,36 @@ def test_full_flow():
     assert "spreadsheetml" in r.headers["content-type"]
     r = client.get("/api/admin/reports/repairs.xlsx", headers=admin)
     assert r.status_code == 200 and r.content[:2] == b"PK"
+
+
+def test_member_and_whitelist():
+    from app.core.config import settings
+
+    settings.admin_sso_ids = "boss001"  # 直接改单例实例，property 即时生效
+
+    # 白名单用户即便以 student 登录也会被提升为 admin
+    r = client.post("/api/auth/dev-login", json={"sso_id": "boss001", "name": "B", "role": "student"})
+    boss = r.json()
+    assert boss["user"]["role"] == "admin"
+    admin = {"Authorization": f"Bearer {boss['access_token']}"}
+
+    # 准备一个普通用户
+    client.post("/api/auth/dev-login", json={"sso_id": "stuA", "name": "A", "role": "student"})
+    users = client.get("/api/admin/users", headers=admin).json()
+    by_sso = {u["sso_id"]: u for u in users}
+    assert by_sso["boss001"]["is_whitelisted"] is True
+    assert by_sso["stuA"]["is_whitelisted"] is False
+
+    # 提升 / 降级普通用户
+    sid = by_sso["stuA"]["id"]
+    assert client.put(f"/api/admin/users/{sid}/role", headers=admin, json={"role": "admin"}).json()["role"] == "admin"
+    assert client.put(f"/api/admin/users/{sid}/role", headers=admin, json={"role": "student"}).json()["role"] == "student"
+
+    # 防呆：不能降自己；不能降白名单成员；非法角色
+    boss_id = by_sso["boss001"]["id"]
+    assert client.put(f"/api/admin/users/{boss_id}/role", headers=admin, json={"role": "student"}).status_code == 400
+    assert client.put(f"/api/admin/users/{sid}/role", headers=admin, json={"role": "x"}).status_code == 400
+
+    # 非管理员无权访问
+    stu = {"Authorization": f"Bearer {client.post('/api/auth/dev-login', json={'sso_id': 'stuZ', 'name': 'Z', 'role': 'student'}).json()['access_token']}"}
+    assert client.get("/api/admin/users", headers=stu).status_code == 403
