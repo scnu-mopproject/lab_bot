@@ -28,10 +28,10 @@
   <!-- 管理员流转 -->
   <view class="card" wx:if="{{isAdmin && r.status !== 'closed'}}">
     <view class="title">流转处理</view>
+    <input class="input" placeholder="处理说明（选填，先填再点状态）" value="{{note}}" bindinput="onNote" />
+    <view class="hint-line">点击下方状态即可更新工单：</view>
     <view class="row actions">
-      <view class="act" wx:for="{{nextStatuses}}" wx:key="*this" data-s="{{item}}" bindtap="pick">{{statusText[item]}}</view>
+      <view class="act" wx:for="{{nextStatuses}}" wx:key="*this" data-s="{{item}}" bindtap="confirmTransition">{{statusText[item]}}</view>
     </view>
-    <input class="input" placeholder="处理说明（选填）" value="{{note}}" bindinput="onNote" />
-    <button class="btn-primary" wx:if="{{picked}}" bindtap="doTransition">确认更新为「{{statusText[picked]}}」</button>
   </view>
 </view>

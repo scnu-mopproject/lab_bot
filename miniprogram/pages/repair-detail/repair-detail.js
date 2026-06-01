@@ -21,7 +21,6 @@ Page({
     r: { logs: [], images: [] },
     isAdmin: false,
     nextStatuses: [],
-    picked: '',
     note: '',
     statusText: STATUS_TEXT,
     statusClass: STATUS_CLASS,
@@ -38,7 +37,7 @@ Page({
   async load() {
     try {
       const r = await api.get('/api/repairs/' + this.data.id);
-      this.setData({ r, nextStatuses: NEXT[r.status] || [], picked: '' });
+      this.setData({ r, nextStatuses: NEXT[r.status] || [] });
     } catch (e) {}
   },
 
@@ -46,14 +45,22 @@ Page({
     wx.previewImage({ urls: this.data.r.images, current: e.currentTarget.dataset.src });
   },
   onNote(e) { this.setData({ note: e.detail.value }); },
-  pick(e) { this.setData({ picked: e.currentTarget.dataset.s }); },
 
-  async doTransition() {
+  // 点击状态 -> 弹确认 -> 直接更新（一步到位）
+  async confirmTransition(e) {
+    const status = e.currentTarget.dataset.s;
+    const label = STATUS_TEXT[status] || status;
+    const ok = await new Promise((resolve) => wx.showModal({
+      title: '流转工单',
+      content: `确认将工单状态更新为「${label}」？`,
+      success: (m) => resolve(m.confirm),
+    }));
+    if (!ok) return;
     try {
       await api.post(`/api/admin/repairs/${this.data.id}/transition`, {
-        status: this.data.picked, note: this.data.note,
+        status, note: this.data.note,
       });
-      wx.showToast({ title: '已更新', icon: 'success' });
+      wx.showToast({ title: '已更新为' + label, icon: 'success' });
       this.setData({ note: '' });
       this.load();
     } catch (e) {}

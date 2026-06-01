@@ -7,6 +7,7 @@
 .tl-body { flex: 1; border-left: 1rpx solid #e2e8f0; margin-left: -12rpx; padding-left: 24rpx; }
 .tl-status { font-weight: 600; }
 .tl-time { font-size: 22rpx; }
+.hint-line { color: #888; font-size: 24rpx; margin: 16rpx 0 12rpx; }
 .actions { flex-wrap: wrap; gap: 16rpx; justify-content: flex-start; }
-.act { padding: 12rpx 28rpx; border: 1rpx solid #2b6cb0; color: #2b6cb0; border-radius: 30rpx; font-size: 26rpx; }
+.act { padding: 14rpx 32rpx; background: #2b6cb0; color: #fff; border-radius: 30rpx; font-size: 26rpx; }
 .input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin: 18rpx 0; }
