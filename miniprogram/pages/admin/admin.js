@@ -26,6 +26,7 @@ Page({
     bookings: [],
     repairs: [],
     faqs: [],
+    documents: [],
     faqForm: { question: '', answer: '', keywords: '' },
     termStart: fmtDate(new Date()),
     filePath: '',
@@ -71,7 +72,7 @@ Page({
     else if (this.data.tab === 'booking') this.loadBookings();
     else if (this.data.tab === 'repair') this.loadRepairs();
     else if (this.data.tab === 'member') this.loadMembers();
-    else if (this.data.tab === 'faq') this.loadFaqs();
+    else if (this.data.tab === 'faq') { this.loadFaqs(); this.loadDocuments(); }
   },
 
   // ---------- 成员管理 ----------
@@ -203,6 +204,47 @@ Page({
   },
   async delFaq(e) {
     try { await api.del('/api/admin/faqs/' + e.currentTarget.dataset.id); this.loadFaqs(); } catch (e) {}
+  },
+
+  // ---------- 知识文档（RAG） ----------
+  async loadDocuments() {
+    try { this.setData({ documents: await api.get('/api/admin/documents') }); } catch (e) {}
+  },
+  uploadDocument() {
+    const app = getApp();
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['txt', 'md', 'pdf', 'docx', 'xlsx'],
+      success: (res) => {
+        const f = res.tempFiles[0];
+        wx.showLoading({ title: '解析建索引中' });
+        wx.uploadFile({
+          url: app.globalData.baseUrl + '/api/admin/documents',
+          filePath: f.path,
+          name: 'file',
+          formData: { title: f.name },
+          header: { Authorization: 'Bearer ' + app.globalData.token },
+          success: (r) => {
+            wx.hideLoading();
+            if (r.statusCode === 200) {
+              wx.showToast({ title: '已上传', icon: 'success' });
+              this.loadDocuments();
+            } else {
+              let msg = '上传失败';
+              try { msg = JSON.parse(r.data).detail || msg; } catch (e) {}
+              wx.showToast({ title: msg, icon: 'none' });
+            }
+          },
+          fail: () => { wx.hideLoading(); wx.showToast({ title: '上传失败', icon: 'none' }); },
+        });
+      },
+    });
+  },
+  async delDocument(e) {
+    const ok = await new Promise((r) => wx.showModal({ title: '删除该文档？', success: (m) => r(m.confirm) }));
+    if (!ok) return;
+    try { await api.del('/api/admin/documents/' + e.currentTarget.dataset.id); this.loadDocuments(); } catch (e) {}
   },
 
   // ---------- 报表导出 ----------

@@ -17,11 +17,12 @@ from app.models.user import User
 from app.schemas.booking import BookingOut, BookingReview
 from app.schemas.chat import FAQIn, FAQOut
 from app.schemas.dashboard import DashboardOut
+from app.schemas.document import DocumentOut
 from app.schemas.member import MemberOut, RoleUpdate
 from app.schemas.repair import RepairOut, RepairTransition
 from app.schemas.room import RoomCreate, RoomOut
 from app.schemas.schedule import ScheduleImportResult
-from app.services import report_service, repair_service
+from app.services import document_service, report_service, repair_service
 from app.services.dashboard_service import build_dashboard
 from app.services.schedule_import import import_schedule
 
@@ -259,3 +260,34 @@ def update_user_role(user_id: int, body: RoleUpdate, db: Session = Depends(get_d
     db.commit()
     db.refresh(user)
     return _member_out(user)
+
+
+# ---------- 知识文档（RAG） ----------
+@router.get("/documents", response_model=list[DocumentOut])
+def list_documents(db: Session = Depends(get_db)):
+    return document_service.list_documents(db)
+
+
+@router.post("/documents", response_model=DocumentOut)
+async def upload_document(
+    file: UploadFile = File(...),
+    title: str | None = Form(None),
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    content = await file.read()
+    try:
+        doc = document_service.index_document(
+            db, content=content, filename=file.filename or "upload.txt",
+            title=title, uploaded_by=admin.id,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return doc
+
+
+@router.delete("/documents/{doc_id}")
+def delete_document(doc_id: int, db: Session = Depends(get_db)):
+    if not document_service.delete_document(db, doc_id):
+        raise HTTPException(404, "文档不存在")
+    return {"ok": True}

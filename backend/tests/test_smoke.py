@@ -122,3 +122,34 @@ def test_member_and_whitelist():
     # 非管理员无权访问
     stu = {"Authorization": f"Bearer {client.post('/api/auth/dev-login', json={'sso_id': 'stuZ', 'name': 'Z', 'role': 'student'}).json()['access_token']}"}
     assert client.get("/api/admin/users", headers=stu).status_code == 403
+
+
+def test_document_rag():
+    import io
+
+    admin = _login("admin", "admin")
+    student = _login("docstu", "student")
+
+    text = (
+        "实验室安全管理规定。\n"
+        "进入实验室必须佩戴防护眼镜和实验服。\n"
+        "危险化学品须存放在专用试剂柜，使用后立即归位并登记。\n"
+        "发生火情应立即使用就近灭火器并拨打安保电话。\n"
+    )
+    files = {"file": ("safety.txt", io.BytesIO(text.encode("utf-8")), "text/plain")}
+    r = client.post("/api/admin/documents", headers=admin, files=files,
+                    data={"title": "实验室安全管理规定"})
+    assert r.status_code == 200
+    doc = r.json()
+    assert doc["chunk_count"] >= 1 and doc["embedding_model"] == "local"
+
+    # 文档列表 + 非管理员不可上传
+    assert len(client.get("/api/admin/documents", headers=admin).json()) >= 1
+    assert client.post("/api/admin/documents", headers=student, files=files).status_code == 403
+
+    # 提问应召回该文档片段
+    r = client.post("/api/chat", headers=student, json={"message": "危险化学品怎么存放"}).json()
+    assert any(s["kind"] == "document" for s in r["sources"])
+
+    # 删除
+    assert client.delete(f"/api/admin/documents/{doc['id']}", headers=admin).status_code == 200

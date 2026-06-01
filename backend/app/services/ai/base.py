@@ -9,9 +9,10 @@ from dataclasses import dataclass
 
 @dataclass
 class RetrievedDoc:
-    question: str
-    answer: str
+    title: str        # FAQ 问题 或 文档标题
+    content: str      # FAQ 答案 或 文档片段内容
     score: float
+    kind: str = "faq"  # faq | document
 
 
 class Retriever(ABC):

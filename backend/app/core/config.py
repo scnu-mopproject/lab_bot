@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     llm_base_url: str = ""
     llm_model: str = ""
 
+    # 向量化（文档问答 RAG）。provider: local | bge | openai-compatible
+    embedding_provider: str = "local"
+    embedding_dim: int = 512          # local 方案维度
+    embedding_model: str = ""         # bge 模型名 或 云端 embedding 模型名
+    embedding_api_key: str = ""
+    embedding_base_url: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

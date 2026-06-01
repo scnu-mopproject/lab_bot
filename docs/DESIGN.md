@@ -87,9 +87,16 @@
 - 提交：选实验室 + 设备名 + 描述 + 照片。
 - 管理员在详情页流转状态并填写处理说明，用户看到进度时间线。
 
-### 5.3 业务咨询（智能体）
-- 对话式：用户提问 → `Retriever` 召回相关 FAQ → 拼进 prompt → `LLMProvider` 生成回答（带来源）。
-- 当前 `MockLLMProvider` 返回基于检索的模板回答；接真实模型时替换 provider 即可。
+### 5.3 业务咨询（智能体 + 文档 RAG）
+- 对话式：用户提问 → **混合检索**（FAQ 关键词 + 文档向量）召回相关片段 → 拼进 prompt → `LLMProvider` 生成回答（带来源，区分 FAQ/文档）。
+- **文档问答（RAG）**：管理员在后台「知识库」上传文档（txt/md/pdf/docx/xlsx）→ 自动**解析→切片(约500字+重叠)→向量化→入库**；提问时按余弦相似度召回最相关片段。
+- **向量化可插拔**（`EMBEDDING_PROVIDER`）：
+  - `local`（默认）：纯 Python 哈希词袋，**离线零依赖、数据不出本地**，开箱即用；
+  - `bge`：本地中文向量模型（sentence-transformers），语义质量高、仍不出本地；
+  - `openai-compatible`：云端 embedding（通义/智谱等），简单高效，片段会出公网。
+  > 切换向量化方案后需对已上传文档重建索引。
+- `LLMProvider` 同样可插拔（mock/claude/openai-compatible）；当前默认 mock，接真实模型即得完整生成式问答。
+- 相关表：`Document`（文档元信息）、`DocumentChunk`（切片+向量）。
 
 ### 5.4 管理员
 - **课表批量导入**：上传 CSV/Excel（实验室/星期/节次/起止周/课程名），解析展开为多条 `course` 预约。

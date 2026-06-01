@@ -14,6 +14,7 @@
 .ln:last-child { border-bottom: none; }
 .ln-main { font-size: 27rpx; }
 .sm { font-size: 22rpx; }
+.add { color: #2b6cb0; font-weight: 600; font-size: 26rpx; }
 
 /* 条形统计 */
 .bar-row { display: flex; align-items: center; margin: 14rpx 0; }

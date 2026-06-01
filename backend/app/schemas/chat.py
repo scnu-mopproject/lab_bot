@@ -12,8 +12,9 @@ class ChatIn(BaseModel):
 
 
 class ChatSource(BaseModel):
-    question: str
+    question: str       # FAQ 问题 或 文档标题
     score: float
+    kind: str = "faq"   # faq | document
 
 
 class ChatOut(BaseModel):
