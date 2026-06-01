@@ -47,6 +47,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## 快速开始（小程序）
 
+> 想用微信开发者工具**零成本、免备案**看到完整运行效果，见 [`docs/RUN_LOCAL.md`](docs/RUN_LOCAL.md)。
+
 1. 用微信开发者工具导入 `miniprogram/` 目录。
 2. 修改 `miniprogram/app.js` 的 `baseUrl` 为后端地址（本地用局域网 IP，生产用已备案 https 域名）。
 3. 调试阶段可在登录页「开发者调试入口」用学号/角色直接登录（需后端 `SSO_MOCK=true`）。
