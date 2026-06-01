@@ -157,6 +157,13 @@ def test_schedule_reimport_replaces():
     assert r2["created"] == 2 and r2["removed"] == 2 and not r2["conflicts"]
 
 
+def test_schedule_template_download():
+    admin = _login("tpladmin", "admin")
+    r = client.get("/api/admin/schedules/template.xlsx", headers=admin)
+    assert r.status_code == 200 and len(r.content) > 1000
+    assert "spreadsheet" in r.headers["content-type"]
+
+
 def test_schedule_append_mode():
     admin = _login("scadmin2", "admin")
     _mk_room(admin, "课表室Y")

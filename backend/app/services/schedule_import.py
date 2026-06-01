@@ -34,6 +34,48 @@ PERIOD_TIMES: dict[int, tuple[time, time]] = {
 }
 
 
+def build_schedule_template() -> bytes:
+    """生成课表导入 Excel 模板：示例数据 + 填写说明 + 节次对照。"""
+    from openpyxl import Workbook
+    from openpyxl.utils import get_column_letter
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "课表模板"
+    headers = ["room_name", "weekday", "start_period", "end_period",
+               "start_week", "end_week", "course_name"]
+    ws.append(headers)
+    for row in [
+        ["计算机实验室 A301", 1, 1, 2, 1, 16, "程序设计基础"],
+        ["计算机实验室 A301", 3, 5, 6, 1, 16, "数据结构"],
+        ["人工智能实验室 B205", 2, 3, 4, 1, 8, "机器学习"],
+    ]:
+        ws.append(row)
+    for i, w in enumerate([22, 9, 13, 12, 11, 10, 18], start=1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    ws2 = wb.create_sheet("填写说明")
+    for r in [
+        ["列名", "说明"],
+        ["room_name", "实验室名称，必须与系统中的实验室名称完全一致"],
+        ["weekday", "星期：1=周一，2=周二 … 7=周日"],
+        ["start_period / end_period", "起止节次（见下方节次对照），如 1 到 2"],
+        ["start_week / end_week", "起止教学周，如第 1 周到第 16 周"],
+        ["course_name", "课程名称（选填，留空记为“课程占用”）"],
+        ["", ""],
+        ["节次", "时间"],
+    ]:
+        ws2.append(r)
+    for p, (s, e) in PERIOD_TIMES.items():
+        ws2.append([f"第{p}节", f"{s.strftime('%H:%M')}-{e.strftime('%H:%M')}"])
+    ws2.column_dimensions["A"].width = 26
+    ws2.column_dimensions["B"].width = 44
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
 def _read_rows(content: bytes, filename: str) -> list[dict]:
     name = filename.lower()
     if name.endswith(".csv"):

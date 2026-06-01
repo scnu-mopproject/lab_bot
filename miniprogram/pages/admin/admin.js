@@ -196,6 +196,23 @@ Page({
   // 课表导入
   onTermStart(e) { this.setData({ termStart: e.detail.value }); },
   setImportMode(e) { this.setData({ importMode: e.currentTarget.dataset.m }); },
+  downloadTemplate() {
+    const app = getApp();
+    wx.showLoading({ title: '下载中', mask: true });
+    wx.downloadFile({
+      url: app.globalData.baseUrl + '/api/admin/schedules/template.xlsx',
+      header: { Authorization: 'Bearer ' + app.globalData.token },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.statusCode !== 200) { wx.showToast({ title: '下载失败', icon: 'none' }); return; }
+        wx.openDocument({
+          filePath: res.tempFilePath, fileType: 'xlsx', showMenu: true,
+          fail: () => wx.showToast({ title: '无法打开，请在手机微信中重试', icon: 'none' }),
+        });
+      },
+      fail: () => { wx.hideLoading(); wx.showToast({ title: '下载失败', icon: 'none' }); },
+    });
+  },
   chooseFile() {
     wx.chooseMessageFile({
       count: 1,

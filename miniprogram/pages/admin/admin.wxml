@@ -145,6 +145,8 @@
     <view class="card">
       <view class="title">批量导入课表</view>
       <view class="muted">上传 CSV/Excel，列：room_name, weekday, start_period, end_period, start_week, end_week, course_name</view>
+      <view class="muted sm">示例：计算机实验室 A301 · weekday=1(周一) · 节次 1-2 · 周次 1-16 · 程序设计基础</view>
+      <view class="link" bindtap="downloadTemplate">⬇ 下载 Excel 模板（含示例与填写说明）</view>
       <view class="row field"><text>学期第一周周一</text>
         <picker mode="date" value="{{termStart}}" bindchange="onTermStart"><view class="date-pick">{{termStart}} ›</view></picker>
       </view>

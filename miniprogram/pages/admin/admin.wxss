@@ -37,6 +37,7 @@
 .mode-seg { display: flex; border: 1rpx solid #2b6cb0; border-radius: 8rpx; overflow: hidden; }
 .mode-i { padding: 8rpx 28rpx; font-size: 24rpx; color: #2b6cb0; }
 .mode-on { background: #2b6cb0; color: #fff; }
+.link { color: #2b6cb0; font-size: 26rpx; margin: 12rpx 0; }
 .input { border: 1rpx solid #e2e8f0; border-radius: 10rpx; padding: 18rpx; margin: 14rpx 0; }
 .area { height: 160rpx; }
 .upload { background: #edf2f7; color: #2b6cb0; border-radius: 10rpx; margin: 16rpx 0; }

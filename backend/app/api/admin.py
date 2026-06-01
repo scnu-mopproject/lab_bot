@@ -33,7 +33,7 @@ from app.schemas.room import (
 from app.schemas.schedule import ScheduleImportResult
 from app.services import booking_service, document_service, report_service, repair_service, room_service
 from app.services.dashboard_service import build_dashboard
-from app.services.schedule_import import import_schedule
+from app.services.schedule_import import build_schedule_template, import_schedule
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(get_current_admin)])
 
@@ -308,6 +308,14 @@ def transition_repair(repair_id: int, body: RepairTransition,
 
 
 # ---------- 课表批量导入 ----------
+@router.get("/schedules/template.xlsx")
+def schedule_template():
+    """下载课表导入 Excel 模板（含示例与填写说明）。"""
+    return _xlsx_response(build_schedule_template(),
+                          ascii_name="schedule_template.xlsx",
+                          display_name="课表导入模板.xlsx")
+
+
 @router.post("/schedules/import", response_model=ScheduleImportResult)
 async def import_schedules(
     file: UploadFile = File(...),
