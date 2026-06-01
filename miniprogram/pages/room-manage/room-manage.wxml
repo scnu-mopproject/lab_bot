@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="row head">
+    <text class="muted">共 {{total}} 个场地</text>
+    <view class="primary-btn" bindtap="openCreate">+ 新增场地</view>
+  </view>
+
+  <view class="card {{item.is_active ? '' : 'off'}}" wx:for="{{rooms}}" wx:key="id">
+    <view class="row">
+      <view class="title">{{item.name}}</view>
+      <view class="tag {{item.is_active ? 'tag-green' : 'tag-gray'}}">{{item.is_active ? '启用' : '停用'}}</view>
+    </view>
+    <view class="muted">{{item.location || '—'}} · 容量 {{item.capacity}} · {{item.open_time}}-{{item.close_time}}</view>
+    <view class="muted sm" wx:if="{{item.description}}">{{item.description}}</view>
+    <view class="muted sm">未来预约 {{item.future_bookings}} · 未完成报修 {{item.open_repairs}}</view>
+    <view class="row actions">
+      <view class="act" bindtap="openEdit" data-room="{{item}}">编辑</view>
+      <view class="act" wx:if="{{item.is_active}}" bindtap="disable" data-id="{{item.id}}">停用</view>
+      <view class="act" wx:else bindtap="enable" data-id="{{item.id}}">启用</view>
+      <view class="act danger" bindtap="remove" data-id="{{item.id}}">删除</view>
+    </view>
+  </view>
+  <view class="muted empty" wx:if="{{rooms.length===0}}">暂无场地，点「+ 新增场地」添加</view>
+</view>
+
+<!-- 新增/编辑 弹层 -->
+<view class="mask" wx:if="{{showForm}}" catchtap="closeForm"></view>
+<view class="sheet" wx:if="{{showForm}}">
+  <view class="sheet-title">{{editId ? '编辑场地' : '新增场地'}}</view>
+  <input class="input" placeholder="名称（必填）" value="{{form.name}}" data-k="name" bindinput="onField" />
+  <input class="input" placeholder="位置" value="{{form.location}}" data-k="location" bindinput="onField" />
+  <input class="input" type="number" placeholder="容量" value="{{form.capacity}}" data-k="capacity" bindinput="onField" />
+  <view class="row gap">
+    <input class="input half" placeholder="开放 如08:00" value="{{form.open_time}}" data-k="open_time" bindinput="onField" />
+    <input class="input half" placeholder="关闭 如22:00" value="{{form.close_time}}" data-k="close_time" bindinput="onField" />
+  </view>
+  <textarea class="input area" placeholder="描述（选填）" value="{{form.description}}" data-k="description" bindinput="onField" />
+  <view class="row gap">
+    <view class="ghost-btn" catchtap="closeForm">取消</view>
+    <view class="primary-btn flex1" catchtap="saveForm">保存</view>
+  </view>
+</view>

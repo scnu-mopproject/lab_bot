@@ -1,0 +1,30 @@
+.container { padding: 24rpx; }
+.row { display: flex; align-items: center; justify-content: space-between; }
+.gap { gap: 16rpx; }
+.head { margin-bottom: 16rpx; }
+.muted { color: #888; font-size: 26rpx; }
+.sm { font-size: 22rpx; }
+.empty { text-align: center; padding: 60rpx 0; }
+
+.card { background: #fff; border-radius: 14rpx; padding: 24rpx; margin-bottom: 18rpx; }
+.card.off { opacity: 0.6; }
+.title { font-size: 30rpx; font-weight: 600; }
+.tag { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 20rpx; }
+.tag-green { background: #e6f6ec; color: #2f9e54; }
+.tag-gray { background: #eee; color: #888; }
+
+.actions { margin-top: 18rpx; gap: 16rpx; justify-content: flex-start; }
+.act { padding: 10rpx 28rpx; border: 1rpx solid #2b6cb0; color: #2b6cb0; border-radius: 30rpx; font-size: 26rpx; }
+.act.danger { border-color: #d9534f; color: #d9534f; }
+
+.primary-btn { background: #2b6cb0; color: #fff; border-radius: 30rpx; padding: 12rpx 28rpx; font-size: 26rpx; text-align: center; }
+.ghost-btn { border: 1rpx solid #ccc; color: #666; border-radius: 30rpx; padding: 12rpx 40rpx; font-size: 26rpx; text-align: center; }
+.flex1 { flex: 1; margin-left: 16rpx; }
+
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; background: #fff;
+  border-radius: 24rpx 24rpx 0 0; padding: 32rpx; }
+.sheet-title { font-size: 30rpx; font-weight: 600; margin-bottom: 20rpx; text-align: center; }
+.input { background: #f5f6f8; border-radius: 10rpx; padding: 18rpx 20rpx; font-size: 28rpx; margin-bottom: 16rpx; }
+.input.half { flex: 1; }
+.input.area { height: 120rpx; }

@@ -22,6 +22,7 @@
       </view>
       <view class="muted">{{item.start_time}} ~ {{item.end_time}}</view>
       <view class="muted" wx:if="{{item.purpose}}">用途：{{item.purpose}}</view>
+      <view class="notice" wx:if="{{item.system_note}}">📢 {{item.system_note}}</view>
       <view class="cancel" wx:if="{{item.status === 'pending' || item.status === 'approved'}}"
             data-id="{{item.id}}" bindtap="cancel">取消预约</view>
     </view>

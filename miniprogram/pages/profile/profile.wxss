@@ -4,4 +4,6 @@
 .bk { padding: 20rpx 0; border-bottom: 1rpx solid #f0f0f0; }
 .bk:last-child { border-bottom: none; }
 .cancel { color: #e53e3e; font-size: 24rpx; margin-top: 10rpx; }
+.notice { margin-top: 10rpx; padding: 12rpx 16rpx; background: #fff7e6; color: #ad6800;
+  border-radius: 8rpx; font-size: 24rpx; }
 .logout { margin-top: 30rpx; background: #fff; color: #e53e3e; border-radius: 12rpx; }

@@ -8,7 +8,8 @@
     "pages/chat/chat",
     "pages/profile/profile",
     "pages/admin/admin",
-    "pages/documents/documents"
+    "pages/documents/documents",
+    "pages/room-manage/room-manage"
   ],
   "window": {
     "navigationBarBackgroundColor": "#2b6cb0",

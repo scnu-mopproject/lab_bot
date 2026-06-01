@@ -137,7 +137,8 @@
       <button class="upload" bindtap="chooseFile">{{fileName || '选择课表文件'}}</button>
       <button class="btn-primary" bindtap="doImport" wx:if="{{filePath}}">开始导入</button>
       <view class="result" wx:if="{{importResult}}">
-        <view>新增 {{importResult.created}} 条，跳过 {{importResult.skipped}} 条</view>
+        <view>清除上次 {{importResult.removed}} 条 · 新增 {{importResult.created}} 条 · 跳过 {{importResult.skipped}} 条</view>
+        <view class="muted" wx:if="{{importResult.conflicts.length}}">以下与师生预约冲突，请到「场地」改约或取消：</view>
         <view class="muted" wx:for="{{importResult.conflicts}}" wx:key="*this">{{item}}</view>
       </view>
     </view>

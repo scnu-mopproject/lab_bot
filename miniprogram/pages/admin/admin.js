@@ -18,6 +18,7 @@ Page({
       { k: 'dashboard', label: '看板' },
       { k: 'booking', label: '审批' },
       { k: 'repair', label: '报修' },
+      { k: 'room', label: '场地' },
       { k: 'member', label: '成员' },
       { k: 'schedule', label: '课表' },
       { k: 'faq', label: '知识库' },
@@ -64,7 +65,12 @@ Page({
   },
 
   switchTab(e) {
-    this.setData({ tab: e.currentTarget.dataset.k }, () => this.loadTab());
+    const k = e.currentTarget.dataset.k;
+    if (k === 'room') {  // 场地管理为独立页面
+      wx.navigateTo({ url: '/pages/room-manage/room-manage' });
+      return;
+    }
+    this.setData({ tab: k }, () => this.loadTab());
   },
 
   loadTab() {
