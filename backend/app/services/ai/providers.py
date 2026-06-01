@@ -35,7 +35,12 @@ class ClaudeProvider(LLMProvider):
 
 
 class OpenAICompatibleProvider(LLMProvider):
-    """接入 OpenAI 兼容接口（通义/智谱/文心等多有兼容端点）。"""
+    """接入 OpenAI 兼容接口（通义千问/智谱/文心等多有兼容端点）。
+
+    通义千问示例：
+      LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+      LLM_MODEL=qwen-plus
+    """
 
     async def generate(self, *, system: str, messages: list[dict]) -> str:
         import httpx
@@ -45,7 +50,7 @@ class OpenAICompatibleProvider(LLMProvider):
             "messages": [{"role": "system", "content": system}, *messages],
         }
         headers = {"Authorization": f"Bearer {settings.llm_api_key}"}
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
                 f"{settings.llm_base_url.rstrip('/')}/chat/completions",
                 json=payload, headers=headers,

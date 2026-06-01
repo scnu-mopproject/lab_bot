@@ -82,21 +82,27 @@ class BGEEmbedding(EmbeddingProvider):
 
 
 class OpenAICompatibleEmbedding(EmbeddingProvider):
-    """云端 embedding（OpenAI 兼容端点，如通义/智谱）。"""
+    """云端 embedding（OpenAI 兼容端点，如通义千问 text-embedding-v3 / 智谱）。"""
 
     name = "cloud"
+    BATCH = 10  # DashScope 等对单次 input 数量有限制，分批更稳
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         import httpx
 
         headers = {"Authorization": f"Bearer {settings.embedding_api_key}"}
-        payload = {"model": settings.embedding_model, "input": texts}
-        with httpx.Client(timeout=30) as client:
-            resp = client.post(f"{settings.embedding_base_url.rstrip('/')}/embeddings",
-                               json=payload, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()["data"]
-        return [item["embedding"] for item in data]
+        url = f"{settings.embedding_base_url.rstrip('/')}/embeddings"
+        out: list[list[float]] = []
+        with httpx.Client(timeout=60) as client:
+            for i in range(0, len(texts), self.BATCH):
+                batch = texts[i:i + self.BATCH]
+                resp = client.post(url, headers=headers,
+                                   json={"model": settings.embedding_model, "input": batch})
+                resp.raise_for_status()
+                # 按返回的 index 排序，保证与输入顺序一致
+                data = sorted(resp.json()["data"], key=lambda d: d.get("index", 0))
+                out.extend(item["embedding"] for item in data)
+        return out
 
 
 def get_embedding_provider() -> EmbeddingProvider:

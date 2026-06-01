@@ -36,7 +36,14 @@ async def answer_question(db: Session, *, message: str, history: list[dict]) -> 
     system = _build_system(docs)
 
     messages = [*history, {"role": "user", "content": message}]
-    reply = await get_provider().generate(system=system, messages=messages)
+    try:
+        reply = await get_provider().generate(system=system, messages=messages)
+    except Exception:  # noqa: BLE001  模型不可用时降级，避免接口 500
+        if docs:
+            reply = ("智能回答服务暂时不可用，以下是知识库中的相关内容：\n\n"
+                     + "\n\n".join(f"· {d.content}" for d in docs[:3]))
+        else:
+            reply = "抱歉，暂时无法回答，请稍后再试或联系实验室管理员。"
 
     return {
         "reply": reply,

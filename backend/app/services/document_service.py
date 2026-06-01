@@ -200,6 +200,22 @@ def delete_document(db: Session, doc_id: int) -> bool:
     return True
 
 
+def reindex_all(db: Session) -> dict:
+    """用当前向量化方案重新计算所有切片的向量（切换 embedding 后调用，无需重新上传）。"""
+    provider = get_embedding_provider()
+    chunks = list(db.scalars(select(DocumentChunk)).all())
+    docs = list(db.scalars(select(Document)).all())
+    if chunks:
+        vectors = provider.embed([c.content for c in chunks])
+        for c, v in zip(chunks, vectors):
+            c.embedding = v
+            c.embedding_model = provider.name
+    for d in docs:
+        d.embedding_model = provider.name
+    db.commit()
+    return {"documents": len(docs), "chunks": len(chunks), "embedding_model": provider.name}
+
+
 def list_documents(db: Session, *, page: int = 1, page_size: int = 20,
                    keyword: str | None = None) -> tuple[list[Document], int]:
     stmt = select(Document)

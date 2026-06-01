@@ -304,6 +304,12 @@ async def upload_documents_zip(
         raise HTTPException(400, str(e))
 
 
+@router.post("/documents/reindex")
+def reindex_documents(db: Session = Depends(get_db)):
+    """用当前向量化方案重建所有文档索引（切换 EMBEDDING_PROVIDER 后调用）。"""
+    return document_service.reindex_all(db)
+
+
 @router.delete("/documents/{doc_id}")
 def delete_document(doc_id: int, db: Session = Depends(get_db)):
     if not document_service.delete_document(db, doc_id):

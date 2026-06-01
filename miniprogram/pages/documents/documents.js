@@ -84,6 +84,25 @@ Page({
     });
   },
 
+  async reindex() {
+    const ok = await new Promise((r) => wx.showModal({
+      title: '重建索引',
+      content: '将用当前向量化方案重新计算所有文档向量，文档较多时稍慢，确定继续？',
+      success: (m) => r(m.confirm),
+    }));
+    if (!ok) return;
+    wx.showLoading({ title: '重建中', mask: true });
+    try {
+      const res = await api.post('/api/admin/documents/reindex');
+      wx.hideLoading();
+      wx.showModal({
+        title: '完成',
+        content: `已重建 ${res.documents} 个文档、${res.chunks} 个片段（向量化:${res.embedding_model}）`,
+        showCancel: false,
+      });
+    } catch (e) { wx.hideLoading(); }
+  },
+
   async delDoc(e) {
     const ok = await new Promise((r) => wx.showModal({ title: '删除该文档？', success: (m) => r(m.confirm) }));
     if (!ok) return;

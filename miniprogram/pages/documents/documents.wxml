@@ -7,9 +7,12 @@
 
   <view class="row head">
     <text class="muted">共 {{total}} 个文档</text>
-    <view class="upload-btn" bindtap="upload">+ 上传文档/压缩包</view>
+    <view class="row">
+      <view class="reindex-btn" bindtap="reindex">重建索引</view>
+      <view class="upload-btn" bindtap="upload">+ 上传</view>
+    </view>
   </view>
-  <view class="muted tip">支持 txt/md/pdf/docx/xlsx；上传 zip 将自动批量导入并按内容去重</view>
+  <view class="muted tip">支持 txt/md/pdf/docx/xlsx；上传 zip 自动批量导入并按内容去重。切换向量化方案后点「重建索引」。</view>
 
   <view class="card doc" wx:for="{{items}}" wx:key="id">
     <view class="row">

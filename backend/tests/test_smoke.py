@@ -161,8 +161,25 @@ def test_document_rag():
     r = client.post("/api/chat", headers=student, json={"message": "危险化学品怎么存放"}).json()
     assert any(s["kind"] == "document" for s in r["sources"])
 
+    # 重建索引（切换向量化方案后用；这里仍为 local）
+    rx = client.post("/api/admin/documents/reindex", headers=admin).json()
+    assert rx["chunks"] >= 1 and rx["embedding_model"] == "local"
+
     # 删除
     assert client.delete(f"/api/admin/documents/{doc['id']}", headers=admin).status_code == 200
+
+
+def test_chat_graceful_fallback(monkeypatch):
+    """LLM 不可用时不应 500，应降级返回。"""
+    student = _login("fbstu", "student")
+
+    class _Boom:
+        async def generate(self, *, system, messages):
+            raise RuntimeError("model down")
+
+    monkeypatch.setattr("app.services.ai.engine.get_provider", lambda: _Boom())
+    r = client.post("/api/chat", headers=student, json={"message": "实验室开放时间"})
+    assert r.status_code == 200 and r.json()["reply"]
 
 
 def test_document_zip_import():

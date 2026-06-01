@@ -3,6 +3,7 @@
 .search-btn { background: #2b6cb0; color: #fff; border-radius: 10rpx; padding: 16rpx 28rpx; font-size: 26rpx; }
 .head { margin-bottom: 8rpx; }
 .upload-btn { background: #2b6cb0; color: #fff; border-radius: 30rpx; padding: 12rpx 28rpx; font-size: 26rpx; }
+.reindex-btn { border: 1rpx solid #2b6cb0; color: #2b6cb0; border-radius: 30rpx; padding: 12rpx 22rpx; font-size: 24rpx; margin-right: 14rpx; }
 .tip { font-size: 22rpx; margin-bottom: 16rpx; }
 .doc { }
 .doc-main { flex: 1; padding-right: 16rpx; }
