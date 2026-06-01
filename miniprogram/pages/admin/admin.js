@@ -25,6 +25,7 @@ Page({
       { k: 'report', label: '报表' },
     ],
     bookings: [],
+    conflictBookings: [],
     repairs: [],
     faqs: [],
     docTotal: 0,
@@ -75,7 +76,7 @@ Page({
 
   loadTab() {
     if (this.data.tab === 'dashboard') this.loadDashboard();
-    else if (this.data.tab === 'booking') this.loadBookings();
+    else if (this.data.tab === 'booking') { this.loadBookings(); this.loadConflicts(); }
     else if (this.data.tab === 'repair') this.loadRepairs();
     else if (this.data.tab === 'member') this.loadMembers();
     else if (this.data.tab === 'faq') { this.loadFaqs(); this.loadDocCount(); }
@@ -137,6 +138,39 @@ Page({
 
   async loadBookings() {
     try { this.setData({ bookings: await api.get('/api/admin/bookings', { status: 'pending' }) }); } catch (e) {}
+  },
+  // 待改约：场地已停用、自动迁移时段冲突的预约
+  async loadConflicts() {
+    try { this.setData({ conflictBookings: await api.get('/api/admin/bookings/conflicts') }); } catch (e) {}
+  },
+  async relocateBooking(e) {
+    const { id, room } = e.currentTarget.dataset;
+    let rooms;
+    try { rooms = await api.get('/api/admin/rooms'); } catch (e) { return; }
+    const targets = rooms.filter((r) => r.is_active && r.id !== room);
+    if (!targets.length) { wx.showToast({ title: '没有其他可用场地', icon: 'none' }); return; }
+    const idx = await new Promise((r) => wx.showActionSheet({
+      itemList: targets.map((t) => t.name),
+      success: (s) => r(s.tapIndex), fail: () => r(-1),
+    }));
+    if (idx < 0) return;
+    try {
+      await api.put(`/api/admin/bookings/${id}/relocate`, { room_id: targets[idx].id });
+      wx.showToast({ title: '已改约', icon: 'success' });
+      this.loadConflicts();
+    } catch (e) {}  // 409 目标时段冲突时 api 已提示，可换场地重试
+  },
+  async cancelConflict(e) {
+    const ok = await new Promise((r) => wx.showModal({
+      title: '取消该预约？', content: '将取消并通知用户', success: (m) => r(m.confirm),
+    }));
+    if (!ok) return;
+    try {
+      await api.post(`/api/admin/bookings/${e.currentTarget.dataset.id}/cancel`,
+        { reason: '因原场地停用，管理员取消' });
+      wx.showToast({ title: '已取消', icon: 'success' });
+      this.loadConflicts();
+    } catch (e) {}
   },
   async loadRepairs() {
     try { this.setData({ repairs: await api.get('/api/admin/repairs') }); } catch (e) {}

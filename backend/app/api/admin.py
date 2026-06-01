@@ -14,7 +14,7 @@ from app.models.faq import FAQ
 from app.models.repair import Repair
 from app.models.room import Room
 from app.models.user import User
-from app.schemas.booking import BookingOut, BookingReview
+from app.schemas.booking import BookingCancel, BookingOut, BookingReview
 from app.schemas.chat import FAQIn, FAQOut
 from app.schemas.dashboard import DashboardOut
 from app.schemas.document import DocumentImportResult, DocumentOut, PaginatedDocuments
@@ -163,6 +163,46 @@ def delete_room(room_id: int, db: Session = Depends(get_db)):
         raise HTTPException(409, "该场地存在预约或报修记录，无法物理删除，请改用「停用」")
     room_service.hard_delete_room(db, room)
     return {"ok": True}
+
+
+@router.get("/bookings/conflicts", response_model=list[BookingOut])
+def list_conflict_bookings(db: Session = Depends(get_db)):
+    """待改约：场地已停用但仍未来有效（pending/approved）的师生预约。"""
+    now = booking_service.now_naive()
+    inactive_ids = select(Room.id).where(Room.is_active == False)  # noqa: E712
+    stmt = select(Booking).where(
+        Booking.status.in_(("pending", "approved")),
+        Booking.source == "user",
+        Booking.end_time > now,
+        Booking.room_id.in_(inactive_ids),
+    ).order_by(Booking.start_time)
+    out = []
+    for b in db.scalars(stmt).all():
+        o = BookingOut.model_validate(b)
+        room = db.get(Room, b.room_id)
+        user = db.get(User, b.user_id)
+        o.room_name = room.name if room else None
+        o.user_name = user.name if user else None
+        out.append(o)
+    return out
+
+
+@router.post("/bookings/{booking_id}/cancel", response_model=BookingOut)
+def cancel_booking_admin(booking_id: int, body: BookingCancel | None = None,
+                         db: Session = Depends(get_db)):
+    booking = db.get(Booking, booking_id)
+    if not booking:
+        raise HTTPException(404, "预约不存在")
+    if booking.status not in ("pending", "approved"):
+        raise HTTPException(400, "该预约无需取消")
+    booking.status = "cancelled"
+    booking.system_note = (body.reason if body and body.reason else "管理员已取消该预约")
+    db.commit()
+    db.refresh(booking)
+    out = BookingOut.model_validate(booking)
+    room = db.get(Room, booking.room_id)
+    out.room_name = room.name if room else None
+    return out
 
 
 @router.put("/bookings/{booking_id}/relocate", response_model=BookingOut)

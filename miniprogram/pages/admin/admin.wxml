@@ -103,6 +103,20 @@
 
   <!-- 预约审批 -->
   <block wx:if="{{tab==='booking'}}">
+    <!-- 待改约：场地已停用且自动迁移时段冲突的预约 -->
+    <view class="card warn" wx:if="{{conflictBookings.length}}">
+      <view class="title">待改约（场地已停用）· {{conflictBookings.length}}</view>
+      <view class="muted sm">这些预约因场地停用、自动迁移时时段冲突，请改到其他场地或取消。</view>
+      <view class="ln" wx:for="{{conflictBookings}}" wx:key="id">
+        <view>{{item.room_name}} · {{item.user_name}}</view>
+        <view class="muted sm">{{item.start_time}} ~ {{item.end_time}}</view>
+        <view class="row btns">
+          <view class="approve" data-id="{{item.id}}" data-room="{{item.room_id}}" bindtap="relocateBooking">改约</view>
+          <view class="reject" data-id="{{item.id}}" bindtap="cancelConflict">取消</view>
+        </view>
+      </view>
+    </view>
+
     <view class="muted hint">仅显示待审批预约（自动审批开启时通常为空）</view>
     <view class="card" wx:for="{{bookings}}" wx:key="id">
       <view class="row"><view class="title">{{item.room_name}}</view><view class="tag tag-orange">待审批</view></view>

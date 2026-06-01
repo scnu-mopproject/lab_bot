@@ -31,3 +31,7 @@ class BookingOut(BaseModel):
 class BookingReview(BaseModel):
     approve: bool
     reason: str | None = None
+
+
+class BookingCancel(BaseModel):
+    reason: str | None = None

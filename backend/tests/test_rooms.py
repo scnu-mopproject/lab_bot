@@ -74,11 +74,18 @@ def test_room_crud_and_disable_relocate():
     # 源场地已停用，不在师生可见列表
     assert all(rm["id"] != src for rm in client.get("/api/rooms", headers=stu).json())
 
+    # 冲突预约出现在"待改约"列表
+    conflicts = client.get("/api/admin/bookings/conflicts", headers=admin).json()
+    assert any(c["id"] == b2["id"] for c in conflicts)
+
     # 手动改约处理冲突的 b2 -> 改到 11-12
     r = client.put(f"/api/admin/bookings/{b2['id']}/relocate", headers=admin,
                    json={"room_id": dst, "start_time": "2031-03-03T11:00:00+00:00",
                          "end_time": "2031-03-03T12:00:00+00:00"})
     assert r.status_code == 200 and r.json()["room_id"] == dst
+
+    # 处理后"待改约"列表清空
+    assert client.get("/api/admin/bookings/conflicts", headers=admin).json() == []
 
     # 两条预约都已迁走，源场地无关联记录 -> 可物理删除
     assert client.delete(f"/api/admin/rooms/{src}", headers=admin).status_code == 200
@@ -103,6 +110,18 @@ def test_disable_cancel_and_hard_delete():
     # 空场地可物理删除
     empty = _mk_room(admin, "空场地")
     assert client.delete(f"/api/admin/rooms/{empty}", headers=admin).status_code == 200
+
+
+def test_admin_cancel_booking():
+    admin = _login("cxadmin", "admin")
+    stu = _login("cxstu", "student")
+    rid = _mk_room(admin, "改约取消室")
+    b = _book(stu, rid, "08", "09", day="2031-05-05").json()
+    r = client.post(f"/api/admin/bookings/{b['id']}/cancel", headers=admin,
+                    json={"reason": "临时占用"})
+    assert r.status_code == 200 and r.json()["status"] == "cancelled"
+    mine = client.get("/api/bookings/mine", headers=stu).json()
+    assert next(x for x in mine if x["id"] == b["id"])["system_note"] == "临时占用"
 
 
 def test_schedule_reimport_replaces():

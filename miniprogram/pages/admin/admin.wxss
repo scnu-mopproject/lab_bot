@@ -2,6 +2,7 @@
 .seg-i { flex: 1; text-align: center; padding: 14rpx 0; border-radius: 10rpx; font-size: 24rpx; color: #666; }
 .seg-on { background: #2b6cb0; color: #fff; }
 .sub-seg { margin: 20rpx 0; }
+.card.warn { border: 1rpx solid #f0c36d; background: #fffbf0; }
 
 /* 看板 KPI */
 .kpis { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 20rpx; }
