@@ -20,6 +20,7 @@ class BookingOut(BaseModel):
     status: str
     source: str
     course_name: str | None = None
+    system_note: str | None = None
     created_at: datetime
     room_name: str | None = None
     user_name: str | None = None

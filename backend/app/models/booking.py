@@ -20,6 +20,8 @@ class Booking(Base):
     # 来源: user (师生预约) / course (课表占用)
     source: Mapped[str] = mapped_column(String(16), default="user")
     course_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # 系统说明（用户可见）：取消原因 / 场地调整说明等
+    system_note: Mapped[str | None] = mapped_column(String(256), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

@@ -63,6 +63,43 @@ def get_availability(db: Session, room: Room, day: date) -> list[dict]:
     return slots
 
 
+def now_naive() -> datetime:
+    """当前时间的 naive UTC（与库内存储一致）。"""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def future_active_bookings(db: Session, room_id: int) -> list[Booking]:
+    """某场地未来仍有效（pending/approved 且未结束）的预约。"""
+    now = now_naive()
+    stmt = select(Booking).where(
+        Booking.room_id == room_id,
+        Booking.status.in_(ACTIVE_STATUSES),
+        Booking.end_time > now,
+    ).order_by(Booking.start_time)
+    return list(db.scalars(stmt).all())
+
+
+def relocate_booking(db: Session, booking: Booking, *, target_room_id: int,
+                     start: datetime | None = None, end: datetime | None = None,
+                     note: str | None = None, commit: bool = True) -> Booking:
+    """改约：换场地（可同时换时间），带冲突校验。冲突时抛 ValueError。"""
+    new_start = to_naive_utc(start) if start else booking.start_time
+    new_end = to_naive_utc(end) if end else booking.end_time
+    if new_end <= new_start:
+        raise ValueError("结束时间必须晚于开始时间")
+    if overlapping_bookings(db, target_room_id, new_start, new_end, exclude_id=booking.id):
+        raise ValueError("目标场地该时段已被占用")
+    booking.room_id = target_room_id
+    booking.start_time = new_start
+    booking.end_time = new_end
+    if note is not None:
+        booking.system_note = note
+    if commit:
+        db.commit()
+        db.refresh(booking)
+    return booking
+
+
 def create_booking(db: Session, *, room_id: int, user_id: int, start: datetime, end: datetime,
                    purpose: str | None, source: str = "user", course_name: str | None = None,
                    commit: bool = True) -> Booking:

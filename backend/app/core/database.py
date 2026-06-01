@@ -34,6 +34,7 @@ def init_db() -> None:
 # 轻量"自动迁移"：给已存在的表补充新增列（仅 SQLite，开发期免删库）。
 _EXPECTED_COLUMNS = {
     "documents": [("content_hash", "VARCHAR(64)")],
+    "bookings": [("system_note", "VARCHAR(256)")],
 }
 
 

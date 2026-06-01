@@ -25,6 +25,58 @@ class RoomCreate(BaseModel):
     close_time: str = "22:00"
 
 
+class RoomUpdate(BaseModel):
+    name: str | None = None
+    location: str | None = None
+    capacity: int | None = None
+    description: str | None = None
+    open_time: str | None = None
+    close_time: str | None = None
+
+
+class RoomAdminOut(RoomOut):
+    """管理端场地：附带影响数量。"""
+    future_bookings: int = 0
+    open_repairs: int = 0
+
+
+class RoomImpact(BaseModel):
+    future_bookings: int
+    user_bookings: int
+    course_bookings: int
+    open_repairs: int
+
+
+class RoomDisableRequest(BaseModel):
+    action: str = "cancel"            # cancel | relocate
+    target_room_id: int | None = None  # action=relocate 时必填
+    reason: str | None = None
+
+
+class BookingBrief(BaseModel):
+    id: int
+    start_time: datetime
+    end_time: datetime
+    user_name: str | None = None
+    purpose: str | None = None
+
+
+class RoomDisableResult(BaseModel):
+    cancelled: int
+    relocated: int
+    course_cancelled: int
+    target_room_id: int | None = None
+    target_room_name: str | None = None
+    conflicts: list[BookingBrief] = []
+
+
+class BookingRelocate(BaseModel):
+    room_id: int | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    note: str | None = None
+
+
 class SlotOut(BaseModel):
     """单个时段（半小时粒度）的占用情况。"""
     start: datetime

@@ -20,9 +20,18 @@ from app.schemas.dashboard import DashboardOut
 from app.schemas.document import DocumentImportResult, DocumentOut, PaginatedDocuments
 from app.schemas.member import MemberOut, RoleUpdate
 from app.schemas.repair import RepairOut, RepairTransition
-from app.schemas.room import RoomCreate, RoomOut
+from app.schemas.room import (
+    BookingRelocate,
+    RoomAdminOut,
+    RoomCreate,
+    RoomDisableRequest,
+    RoomDisableResult,
+    RoomImpact,
+    RoomOut,
+    RoomUpdate,
+)
 from app.schemas.schedule import ScheduleImportResult
-from app.services import document_service, report_service, repair_service
+from app.services import booking_service, document_service, report_service, repair_service, room_service
 from app.services.dashboard_service import build_dashboard
 from app.services.schedule_import import import_schedule
 
@@ -79,7 +88,13 @@ def export_repairs(
                           display_name=f"报修报表{suffix}.xlsx")
 
 
-# ---------- 实验室管理 ----------
+# ---------- 实验室（场地）管理 ----------
+@router.get("/rooms", response_model=list[RoomAdminOut])
+def list_rooms_admin(db: Session = Depends(get_db)):
+    """全部场地（含停用），附未来预约数 / 未完成报修数。"""
+    return room_service.list_rooms_with_counts(db)
+
+
 @router.post("/rooms", response_model=RoomOut)
 def create_room(body: RoomCreate, db: Session = Depends(get_db)):
     room = Room(**body.model_dump())
@@ -87,6 +102,90 @@ def create_room(body: RoomCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(room)
     return room
+
+
+@router.put("/rooms/{room_id}", response_model=RoomOut)
+def update_room(room_id: int, body: RoomUpdate, db: Session = Depends(get_db)):
+    room = db.get(Room, room_id)
+    if not room:
+        raise HTTPException(404, "实验室不存在")
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(room, field, value)
+    db.commit()
+    db.refresh(room)
+    return room
+
+
+@router.get("/rooms/{room_id}/impact", response_model=RoomImpact)
+def room_impact(room_id: int, db: Session = Depends(get_db)):
+    if not db.get(Room, room_id):
+        raise HTTPException(404, "实验室不存在")
+    return room_service.room_impact(db, room_id)
+
+
+@router.patch("/rooms/{room_id}/active")
+def set_room_active(room_id: int, active: bool, body: RoomDisableRequest | None = None,
+                    db: Session = Depends(get_db)):
+    room = db.get(Room, room_id)
+    if not room:
+        raise HTTPException(404, "实验室不存在")
+    if active:
+        room.is_active = True
+        db.commit()
+        return {"ok": True, "is_active": True}
+    # 停用：联动处理未来预约
+    req = body or RoomDisableRequest()
+    try:
+        result = room_service.disable_room(
+            db, room, action=req.action, target_room_id=req.target_room_id, reason=req.reason)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    target = result["target_room"]
+    return RoomDisableResult(
+        cancelled=result["cancelled"], relocated=result["relocated"],
+        course_cancelled=result["course_cancelled"],
+        target_room_id=target.id if target else None,
+        target_room_name=target.name if target else None,
+        conflicts=[{
+            "id": b.id, "start_time": b.start_time, "end_time": b.end_time,
+            "user_name": (db.get(User, b.user_id).name if db.get(User, b.user_id) else None),
+            "purpose": b.purpose,
+        } for b in result["conflicts"]],
+    )
+
+
+@router.delete("/rooms/{room_id}")
+def delete_room(room_id: int, db: Session = Depends(get_db)):
+    room = db.get(Room, room_id)
+    if not room:
+        raise HTTPException(404, "实验室不存在")
+    if not room_service.can_hard_delete(db, room_id):
+        raise HTTPException(409, "该场地存在预约或报修记录，无法物理删除，请改用「停用」")
+    room_service.hard_delete_room(db, room)
+    return {"ok": True}
+
+
+@router.put("/bookings/{booking_id}/relocate", response_model=BookingOut)
+def relocate_booking_admin(booking_id: int, body: BookingRelocate, db: Session = Depends(get_db)):
+    booking = db.get(Booking, booking_id)
+    if not booking:
+        raise HTTPException(404, "预约不存在")
+    if booking.status not in ("pending", "approved"):
+        raise HTTPException(400, "仅可改约有效（待审批/已通过）的预约")
+    target_id = body.room_id or booking.room_id
+    if not db.get(Room, target_id):
+        raise HTTPException(404, "目标实验室不存在")
+    note = body.note or "管理员已调整你的预约场地/时间"
+    try:
+        booking_service.relocate_booking(
+            db, booking, target_room_id=target_id,
+            start=body.start_time, end=body.end_time, note=note)
+    except ValueError as e:
+        raise HTTPException(409, str(e))
+    out = BookingOut.model_validate(booking)
+    room = db.get(Room, booking.room_id)
+    out.room_name = room.name if room else None
+    return out
 
 
 # ---------- 预约审批 ----------
