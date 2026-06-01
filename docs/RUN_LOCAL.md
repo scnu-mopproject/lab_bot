@@ -6,6 +6,16 @@
 
 ---
 
+## 〇、获取代码（首次）
+
+代码都在分支 **`claude/stoic-curie-0ul8L`**（`main` 目前仅有 README），clone 后务必切到该分支：
+
+```bash
+git clone https://github.com/scnu-mopproject/lab_bot.git
+cd lab_bot
+git checkout claude/stoic-curie-0ul8L
+```
+
 ## 一、启动后端（1 条命令）
 
 需要本机已装 **Python 3.10+**。
@@ -17,7 +27,9 @@ bash run_local.sh
 
 脚本会自动：建虚拟环境 → 装依赖 → 生成本机用 `.env`（全 mock）→ 写入演示数据 → 启动服务。
 
-成功后访问 **http://localhost:8000/docs** 应能看到接口文档（这本身就是一个可交互的"固定地址"，可直接点 `dev-login`、`rooms`、`dashboard` 等驱动后端验证）。
+成功后访问 **http://localhost:8000/docs** 应能看到接口文档（这本身就是一个可交互的"固定地址"）。
+
+> 在 `/docs` 里验证：先调 `POST /api/auth/dev-login`（body 填 `{"sso_id":"admin","name":"管理员","role":"admin"}`）拿到 `access_token` → 点页面右上角 **Authorize**、粘贴该 token → 之后所有需要登录的接口（rooms / bookings / dashboard / reports 等）都可直接点 **Try it out** 调用。
 
 > Windows 无 bash 时，手动执行：
 > ```
