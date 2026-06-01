@@ -312,9 +312,12 @@ def transition_repair(repair_id: int, body: RepairTransition,
 async def import_schedules(
     file: UploadFile = File(...),
     term_start_monday: str = Form(..., description="学期第一周周一，YYYY-MM-DD"),
+    mode: str = Form("replace", description="replace=覆盖(默认) / append=追加"),
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin),
 ):
+    if mode not in ("replace", "append"):
+        raise HTTPException(400, "mode 仅支持 replace 或 append")
     try:
         start_monday = date.fromisoformat(term_start_monday)
     except ValueError:
@@ -323,7 +326,7 @@ async def import_schedules(
     try:
         result = import_schedule(
             db, content=content, filename=file.filename or "upload.csv",
-            operator_user_id=admin.id, term_start_monday=start_monday,
+            operator_user_id=admin.id, term_start_monday=start_monday, mode=mode,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))

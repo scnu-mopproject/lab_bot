@@ -152,6 +152,24 @@ def test_schedule_reimport_replaces():
 
     r1 = _import()
     assert r1["created"] == 2 and r1["removed"] == 0 and not r1["conflicts"]
-    # 重导：应先清空上次（removed=2），再新建，不再自我冲突
+    # 重导（覆盖）：应先清空上次（removed=2），再新建，不再自我冲突
     r2 = _import()
     assert r2["created"] == 2 and r2["removed"] == 2 and not r2["conflicts"]
+
+
+def test_schedule_append_mode():
+    admin = _login("scadmin2", "admin")
+    _mk_room(admin, "课表室Y")
+
+    def _imp(course, mode):
+        csv = ("room_name,weekday,start_period,end_period,start_week,end_week,course_name\n"
+               f"课表室Y,1,1,2,1,2,{course}\n")
+        return client.post("/api/admin/schedules/import", headers=admin,
+                           files={"file": ("s.csv", io.BytesIO(csv.encode()), "text/csv")},
+                           data={"term_start_monday": "2031-09-01", "mode": mode}).json()
+
+    a = _imp("高数", "append")
+    assert a["created"] == 2 and a["removed"] == 0      # 追加：不清空
+    # 再追加相同时段的另一门课 -> 时段已占用，全部跳过（防重复/防撞）
+    b = _imp("线代", "append")
+    assert b["created"] == 0 and b["removed"] == 0 and len(b["conflicts"]) == 2

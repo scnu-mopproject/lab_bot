@@ -148,11 +148,18 @@
       <view class="row field"><text>学期第一周周一</text>
         <picker mode="date" value="{{termStart}}" bindchange="onTermStart"><view class="date-pick">{{termStart}} ›</view></picker>
       </view>
+      <view class="row field"><text>导入方式</text>
+        <view class="mode-seg">
+          <view class="mode-i {{importMode==='replace'?'mode-on':''}}" data-m="replace" bindtap="setImportMode">覆盖</view>
+          <view class="mode-i {{importMode==='append'?'mode-on':''}}" data-m="append" bindtap="setImportMode">追加</view>
+        </view>
+      </view>
+      <view class="muted sm">{{importMode==='replace' ? '覆盖：清空旧课表后整体重导（学期重排用）。' : '追加：保留现有课表，仅新增；撞到已占用时段会跳过并提示。'}}</view>
       <button class="upload" bindtap="chooseFile">{{fileName || '选择课表文件'}}</button>
       <button class="btn-primary" bindtap="doImport" wx:if="{{filePath}}">开始导入</button>
       <view class="result" wx:if="{{importResult}}">
-        <view>清除上次 {{importResult.removed}} 条 · 新增 {{importResult.created}} 条 · 跳过 {{importResult.skipped}} 条</view>
-        <view class="muted" wx:if="{{importResult.conflicts.length}}">以下与师生预约冲突，请到「场地」改约或取消：</view>
+        <view><text wx:if="{{importResult.removed}}">清除旧课表 {{importResult.removed}} 条 · </text>新增 {{importResult.created}} 条 · 跳过 {{importResult.skipped}} 条</view>
+        <view class="muted" wx:if="{{importResult.conflicts.length}}">以下时段已被占用（已排课或已被师生预约），已跳过，可到「场地」改约或调整：</view>
         <view class="muted" wx:for="{{importResult.conflicts}}" wx:key="*this">{{item}}</view>
       </view>
     </view>

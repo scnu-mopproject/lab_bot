@@ -53,16 +53,18 @@ def _read_rows(content: bytes, filename: str) -> list[dict]:
 
 
 def import_schedule(db: Session, *, content: bytes, filename: str, operator_user_id: int,
-                    term_start_monday: date) -> dict:
-    """解析课表并生成 course 预约（重导即覆盖）。返回 {created, skipped, removed, conflicts}。
+                    term_start_monday: date, mode: str = "replace") -> dict:
+    """解析课表并生成 course 预约。返回 {created, skipped, removed, conflicts}。
 
-    导入前先清空上一次的课表占用（source="course"），实现"以最新一次导入为准"，
-    避免与自身冲突。清空后 conflicts 中仅会出现与师生预约（source="user"）的真实重叠，
-    交由管理员迁移场地或取消。
+    mode="replace"（覆盖，默认）：先清空上一次的课表占用（source="course"）再写入，
+        实现"以最新一次导入为准"，清空后 conflicts 仅为与师生预约的真实重叠。
+    mode="append"（追加）：不清空，仅新增；冲突检测会跳过已被占用（课表或师生预约）的
+        时段并记入 conflicts，从而天然防止重复与撞课。
     """
     rows = _read_rows(content, filename)  # 文件非法在此先报错，不会误删
-    # 重导即覆盖：清除上次课表占用
-    removed = db.execute(delete(Booking).where(Booking.source == "course")).rowcount or 0
+    removed = 0
+    if mode == "replace":
+        removed = db.execute(delete(Booking).where(Booking.source == "course")).rowcount or 0
     room_cache: dict[str, Room | None] = {}
     created = skipped = 0
     conflicts: list[str] = []

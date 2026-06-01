@@ -31,6 +31,7 @@ Page({
     docTotal: 0,
     faqForm: { question: '', answer: '', keywords: '' },
     termStart: fmtDate(new Date()),
+    importMode: 'replace',  // replace=覆盖 / append=追加
     filePath: '',
     fileName: '',
     importResult: null,
@@ -194,6 +195,7 @@ Page({
 
   // 课表导入
   onTermStart(e) { this.setData({ termStart: e.detail.value }); },
+  setImportMode(e) { this.setData({ importMode: e.currentTarget.dataset.m }); },
   chooseFile() {
     wx.chooseMessageFile({
       count: 1,
@@ -212,7 +214,7 @@ Page({
       url: app.globalData.baseUrl + '/api/admin/schedules/import',
       filePath: this.data.filePath,
       name: 'file',
-      formData: { term_start_monday: this.data.termStart },
+      formData: { term_start_monday: this.data.termStart, mode: this.data.importMode },
       header: { Authorization: 'Bearer ' + app.globalData.token },
       success: (res) => {
         wx.hideLoading();
