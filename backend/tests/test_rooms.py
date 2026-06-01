@@ -104,12 +104,27 @@ def test_disable_cancel_and_hard_delete():
     mine = client.get("/api/bookings/mine", headers=stu).json()
     assert next(x for x in mine if x["id"] == b["id"])["status"] == "cancelled"
 
-    # 仍存在（已取消的）预约记录 -> 不可物理删除，应提示改用停用
+    # 仍存在（已取消的）预约记录：普通删除被拦，提示需强制
     assert client.delete(f"/api/admin/rooms/{rid}", headers=admin).status_code == 409
+    # impact 暴露历史记录数，未来有效为 0
+    imp = client.get(f"/api/admin/rooms/{rid}/impact", headers=admin).json()
+    assert imp["future_bookings"] == 0 and imp["total_bookings"] == 1
+    # 强制删除可成功（级联清除历史）
+    assert client.delete(f"/api/admin/rooms/{rid}?force=true", headers=admin).status_code == 200
 
-    # 空场地可物理删除
+    # 空场地直接物理删除
     empty = _mk_room(admin, "空场地")
     assert client.delete(f"/api/admin/rooms/{empty}", headers=admin).status_code == 200
+
+
+def test_delete_blocked_by_future_booking():
+    admin = _login("delfut", "admin")
+    stu = _login("delfutstu", "student")
+    rid = _mk_room(admin, "有未来预约室")
+    _book(stu, rid, "09", "10", day="2032-06-06")
+    # 有未来有效预约：即便 force 也不允许删除，须先停用处理
+    assert client.delete(f"/api/admin/rooms/{rid}", headers=admin).status_code == 409
+    assert client.delete(f"/api/admin/rooms/{rid}?force=true", headers=admin).status_code == 409
 
 
 def test_admin_cancel_booking():

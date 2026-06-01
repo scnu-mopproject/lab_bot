@@ -112,9 +112,28 @@ Page({
   },
 
   async remove(e) {
-    if (!(await this._confirm('物理删除', '仅当该场地无任何预约/报修记录时可删除；否则请用「停用」。确定删除？'))) return;
+    const id = e.currentTarget.dataset.id;
+    let impact;
+    try { impact = await api.get(`/api/admin/rooms/${id}/impact`); } catch (e) { return; }
+
+    if (impact.future_bookings > 0) {
+      wx.showModal({
+        title: '无法删除',
+        content: '该场地仍有未来有效预约，请先「停用」并处理（取消或迁移）后再删除。',
+        showCancel: false,
+      });
+      return;
+    }
+    const totalRecords = (impact.total_bookings || 0) + (impact.total_repairs || 0);
+    let force = false;
+    let content = '该场地无任何记录，确定物理删除？';
+    if (totalRecords > 0) {
+      force = true;
+      content = `该场地有 ${impact.total_bookings} 条预约、${impact.total_repairs} 条报修历史记录（含已取消/已完成）。物理删除会一并清除并影响历史报表，建议改用「停用」。仍要强制删除？`;
+    }
+    if (!(await this._confirm(force ? '强制删除' : '物理删除', content))) return;
     try {
-      await api.del('/api/admin/rooms/' + e.currentTarget.dataset.id);
+      await api.del(`/api/admin/rooms/${id}${force ? '?force=true' : ''}`);
       wx.showToast({ title: '已删除', icon: 'success' });
       this.load();
     } catch (e) {}

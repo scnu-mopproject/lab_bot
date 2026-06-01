@@ -155,13 +155,21 @@ def set_room_active(room_id: int, active: bool, body: RoomDisableRequest | None 
 
 
 @router.delete("/rooms/{room_id}")
-def delete_room(room_id: int, db: Session = Depends(get_db)):
+def delete_room(room_id: int, force: bool = False, db: Session = Depends(get_db)):
+    """物理删除。
+
+    - 有未来有效预约：拒绝，须先「停用」处理（取消/迁移 + 通知）。
+    - 仅剩历史/已取消记录：需 force=true 才级联删除这些记录。
+    - 无任何记录：直接删除。
+    """
     room = db.get(Room, room_id)
     if not room:
         raise HTTPException(404, "实验室不存在")
-    if not room_service.can_hard_delete(db, room_id):
-        raise HTTPException(409, "该场地存在预约或报修记录，无法物理删除，请改用「停用」")
-    room_service.hard_delete_room(db, room)
+    if room_service.room_impact(db, room_id)["future_bookings"] > 0:
+        raise HTTPException(409, "该场地仍有未来有效预约，请先「停用」处理后再删除")
+    if not force and not room_service.can_hard_delete(db, room_id):
+        raise HTTPException(409, "该场地存在历史预约/报修记录，需确认后强制删除，或改用「停用」")
+    room_service.hard_delete_room(db, room, cascade=force)
     return {"ok": True}
 
 

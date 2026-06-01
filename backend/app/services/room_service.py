@@ -1,5 +1,5 @@
 """场地管理：影响预检、停用（取消/迁移联动）、受限物理删除。"""
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models.booking import Booking
@@ -19,15 +19,21 @@ def _open_repairs(db: Session, room_id: int) -> int:
 
 
 def room_impact(db: Session, room_id: int) -> dict:
-    """停用前预检：未来预约（区分师生/课表）与未完成报修数量。"""
+    """停用前预检：未来预约（区分师生/课表）与未完成报修数量；以及全部历史记录数。"""
     futures = future_active_bookings(db, room_id)
     user_bookings = [b for b in futures if b.source == "user"]
     course_bookings = [b for b in futures if b.source == "course"]
+    total_bookings = db.scalar(
+        select(func.count()).select_from(Booking).where(Booking.room_id == room_id)) or 0
+    total_repairs = db.scalar(
+        select(func.count()).select_from(Repair).where(Repair.room_id == room_id)) or 0
     return {
         "future_bookings": len(futures),
         "user_bookings": len(user_bookings),
         "course_bookings": len(course_bookings),
         "open_repairs": _open_repairs(db, room_id),
+        "total_bookings": total_bookings,
+        "total_repairs": total_repairs,
     }
 
 
@@ -100,6 +106,9 @@ def can_hard_delete(db: Session, room_id: int) -> bool:
     return has_booking is None and has_repair is None
 
 
-def hard_delete_room(db: Session, room: Room) -> None:
+def hard_delete_room(db: Session, room: Room, *, cascade: bool = False) -> None:
+    if cascade:  # 强制删除：连同该场地的历史预约/报修一并清除
+        db.execute(delete(Booking).where(Booking.room_id == room.id))
+        db.execute(delete(Repair).where(Repair.room_id == room.id))
     db.delete(room)
     db.commit()

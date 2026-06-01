@@ -45,6 +45,8 @@ class RoomImpact(BaseModel):
     user_bookings: int
     course_bookings: int
     open_repairs: int
+    total_bookings: int = 0   # 全部历史预约数（含已取消）
+    total_repairs: int = 0    # 全部报修数（含已完成）
 
 
 class RoomDisableRequest(BaseModel):
