@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="search-bar">
+    <input class="search-ipt" placeholder="搜索文档标题" value="{{keyword}}"
+           bindinput="onKeyword" confirm-type="search" bindconfirm="doSearch" />
+    <view class="search-btn" bindtap="doSearch">搜索</view>
+  </view>
+
+  <view class="row head">
+    <text class="muted">共 {{total}} 个文档</text>
+    <view class="upload-btn" bindtap="upload">+ 上传文档/压缩包</view>
+  </view>
+  <view class="muted tip">支持 txt/md/pdf/docx/xlsx；上传 zip 将自动批量导入并按内容去重</view>
+
+  <view class="card doc" wx:for="{{items}}" wx:key="id">
+    <view class="row">
+      <view class="doc-main">
+        <view class="doc-title">{{item.title}}</view>
+        <view class="muted sm">{{item.chunk_count}} 个片段 · 向量化:{{item.embedding_model}}</view>
+        <view class="muted sm">{{item.created_at}}</view>
+      </view>
+      <view class="del" data-id="{{item.id}}" bindtap="delDoc">删除</view>
+    </view>
+  </view>
+
+  <view class="muted center" wx:if="{{items.length===0 && !loading}}">暂无文档，点右上「上传」添加</view>
+  <view class="muted center" wx:if="{{loading}}">加载中…</view>
+  <view class="muted center" wx:if="{{!hasMore && items.length>0}}">— 没有更多了 —</view>
+</view>

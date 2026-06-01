@@ -7,7 +7,8 @@
     "pages/repair-detail/repair-detail",
     "pages/chat/chat",
     "pages/profile/profile",
-    "pages/admin/admin"
+    "pages/admin/admin",
+    "pages/documents/documents"
   ],
   "window": {
     "navigationBarBackgroundColor": "#2b6cb0",

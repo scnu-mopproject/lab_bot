@@ -1,0 +1,12 @@
+.search-bar { display: flex; gap: 16rpx; margin-bottom: 16rpx; }
+.search-ipt { flex: 1; background: #fff; border-radius: 10rpx; padding: 16rpx 24rpx; font-size: 26rpx; }
+.search-btn { background: #2b6cb0; color: #fff; border-radius: 10rpx; padding: 16rpx 28rpx; font-size: 26rpx; }
+.head { margin-bottom: 8rpx; }
+.upload-btn { background: #2b6cb0; color: #fff; border-radius: 30rpx; padding: 12rpx 28rpx; font-size: 26rpx; }
+.tip { font-size: 22rpx; margin-bottom: 16rpx; }
+.doc { }
+.doc-main { flex: 1; padding-right: 16rpx; }
+.doc-title { font-size: 28rpx; font-weight: 600; }
+.sm { font-size: 22rpx; }
+.del { color: #e53e3e; font-size: 24rpx; }
+.center { text-align: center; padding: 24rpx 0; }

@@ -145,19 +145,9 @@
 
   <!-- FAQ 知识库 + 知识文档 -->
   <block wx:if="{{tab==='faq'}}">
-    <view class="card">
-      <view class="row"><view class="title">知识文档（智能问答）</view><view class="add" bindtap="uploadDocument">+ 上传</view></view>
-      <view class="muted sm">支持 txt/md/pdf/docx/xlsx，上传后自动切片，咨询机器人会引用其内容作答</view>
-      <view class="ln" wx:for="{{documents}}" wx:key="id">
-        <view class="row">
-          <view>
-            <view class="ln-main">{{item.title}}</view>
-            <view class="muted sm">{{item.chunk_count}} 个片段 · 向量化:{{item.embedding_model}}</view>
-          </view>
-          <view class="del" data-id="{{item.id}}" bindtap="delDocument">删除</view>
-        </view>
-      </view>
-      <view class="muted sm" wx:if="{{documents.length===0}}">暂无文档，点「+ 上传」添加</view>
+    <view class="card" bindtap="goDocuments">
+      <view class="row"><view class="title">知识文档（智能问答）</view><view class="add">管理文档 ›</view></view>
+      <view class="muted sm">共 {{docTotal}} 个文档 · 支持 txt/md/pdf/docx/xlsx 及 zip 批量上传，机器人会引用其内容作答</view>
     </view>
 
     <view class="card">

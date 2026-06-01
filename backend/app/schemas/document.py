@@ -12,3 +12,17 @@ class DocumentOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PaginatedDocuments(BaseModel):
+    items: list[DocumentOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class DocumentImportResult(BaseModel):
+    created: int
+    duplicated: int
+    skipped: list[str] = []
+    documents: list[DocumentOut] = []

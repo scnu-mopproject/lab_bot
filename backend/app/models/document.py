@@ -14,6 +14,8 @@ class Document(Base):
     title: Mapped[str] = mapped_column(String(256))
     filename: Mapped[str] = mapped_column(String(256))
     uploaded_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    # 解析文本的 sha256，用于重复上传去重
+    content_hash: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
     # 记录建索引时使用的向量化方案，便于检索时只比对同方案的向量
     embedding_model: Mapped[str] = mapped_column(String(64), default="local")

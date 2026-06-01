@@ -17,7 +17,7 @@ from app.models.user import User
 from app.schemas.booking import BookingOut, BookingReview
 from app.schemas.chat import FAQIn, FAQOut
 from app.schemas.dashboard import DashboardOut
-from app.schemas.document import DocumentOut
+from app.schemas.document import DocumentImportResult, DocumentOut, PaginatedDocuments
 from app.schemas.member import MemberOut, RoleUpdate
 from app.schemas.repair import RepairOut, RepairTransition
 from app.schemas.room import RoomCreate, RoomOut
@@ -263,9 +263,12 @@ def update_user_role(user_id: int, body: RoleUpdate, db: Session = Depends(get_d
 
 
 # ---------- 知识文档（RAG） ----------
-@router.get("/documents", response_model=list[DocumentOut])
-def list_documents(db: Session = Depends(get_db)):
-    return document_service.list_documents(db)
+@router.get("/documents", response_model=PaginatedDocuments)
+def list_documents(page: int = 1, page_size: int = 20, keyword: str | None = None,
+                   db: Session = Depends(get_db)):
+    items, total = document_service.list_documents(
+        db, page=page, page_size=page_size, keyword=keyword)
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
 
 
 @router.post("/documents", response_model=DocumentOut)
@@ -277,13 +280,28 @@ async def upload_document(
 ):
     content = await file.read()
     try:
-        doc = document_service.index_document(
+        status, doc = document_service.index_single(
             db, content=content, filename=file.filename or "upload.txt",
             title=title, uploaded_by=admin.id,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
+    if status == "duplicate":
+        raise HTTPException(409, f"该文档内容已存在：{doc.title}")
     return doc
+
+
+@router.post("/documents/batch", response_model=DocumentImportResult)
+async def upload_documents_zip(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    content = await file.read()
+    try:
+        return document_service.index_zip(db, content=content, uploaded_by=admin.id)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @router.delete("/documents/{doc_id}")

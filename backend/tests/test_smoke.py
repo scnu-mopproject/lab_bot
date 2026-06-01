@@ -143,9 +143,19 @@ def test_document_rag():
     doc = r.json()
     assert doc["chunk_count"] >= 1 and doc["embedding_model"] == "local"
 
-    # 文档列表 + 非管理员不可上传
-    assert len(client.get("/api/admin/documents", headers=admin).json()) >= 1
+    # 文档列表（分页）+ 非管理员不可上传
+    lst = client.get("/api/admin/documents", headers=admin).json()
+    assert lst["total"] >= 1 and isinstance(lst["items"], list)
+    files = {"file": ("safety.txt", io.BytesIO(text.encode("utf-8")), "text/plain")}
     assert client.post("/api/admin/documents", headers=student, files=files).status_code == 403
+
+    # 重复上传（同内容）应被去重拦截
+    files = {"file": ("safety2.txt", io.BytesIO(text.encode("utf-8")), "text/plain")}
+    assert client.post("/api/admin/documents", headers=admin, files=files,
+                       data={"title": "重复"}).status_code == 409
+
+    # 关键词搜索
+    assert client.get("/api/admin/documents?keyword=安全", headers=admin).json()["total"] >= 1
 
     # 提问应召回该文档片段
     r = client.post("/api/chat", headers=student, json={"message": "危险化学品怎么存放"}).json()
@@ -153,3 +163,26 @@ def test_document_rag():
 
     # 删除
     assert client.delete(f"/api/admin/documents/{doc['id']}", headers=admin).status_code == 200
+
+
+def test_document_zip_import():
+    import io
+    import zipfile
+
+    admin = _login("zipadmin", "admin")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("规章/借用须知.txt", "实验室借用须知。借用需提前一天预约并经管理员审批。")
+        zf.writestr("规章/安全须知.md", "# 安全须知\n禁止在实验室饮食，离开前断电断水。")
+        zf.writestr("规章/借用须知_副本.txt", "实验室借用须知。借用需提前一天预约并经管理员审批。")  # 重复内容
+        zf.writestr("readme.xyz", "不支持的格式")
+        zf.writestr("__MACOSX/._x", "junk")
+    buf.seek(0)
+
+    files = {"file": ("rules.zip", buf, "application/zip")}
+    r = client.post("/api/admin/documents/batch", headers=admin, files=files)
+    assert r.status_code == 200, r.text
+    res = r.json()
+    assert res["created"] == 2          # 两个有效文档
+    assert res["duplicated"] == 1       # 重复内容被去重
+    assert any("不支持的格式" in s for s in res["skipped"])
