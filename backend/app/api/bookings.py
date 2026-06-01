@@ -41,7 +41,10 @@ def create(body: BookingCreate, db: Session = Depends(get_db),
 
 @router.get("/mine", response_model=list[BookingOut])
 def my_bookings(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    stmt = select(Booking).where(Booking.user_id == user.id).order_by(Booking.start_time.desc())
+    # 仅展示本人的个人预约；课表占用(source=course)不属于"我的预约"
+    stmt = (select(Booking)
+            .where(Booking.user_id == user.id, Booking.source == "user")
+            .order_by(Booking.start_time.desc()))
     return [_to_out(db, b) for b in db.scalars(stmt).all()]
 
 

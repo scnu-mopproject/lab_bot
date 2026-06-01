@@ -157,6 +157,20 @@ def test_schedule_reimport_replaces():
     assert r2["created"] == 2 and r2["removed"] == 2 and not r2["conflicts"]
 
 
+def test_mine_excludes_course():
+    """课表占用不应出现在导入者的「我的预约」里。"""
+    admin = _login("mineadmin", "admin")
+    _mk_room(admin, "课表室Z")
+    csv = ("room_name,weekday,start_period,end_period,start_week,end_week,course_name\n"
+           "课表室Z,1,1,2,1,3,高数\n")
+    client.post("/api/admin/schedules/import", headers=admin,
+                files={"file": ("s.csv", io.BytesIO(csv.encode()), "text/csv")},
+                data={"term_start_monday": "2031-09-01", "mode": "append"})
+    mine = client.get("/api/bookings/mine", headers=admin).json()
+    assert all(b["source"] == "user" for b in mine)
+    assert not any(b["course_name"] == "高数" for b in mine)
+
+
 def test_schedule_template_download():
     admin = _login("tpladmin", "admin")
     r = client.get("/api/admin/schedules/template.xlsx", headers=admin)
