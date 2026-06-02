@@ -1,5 +1,5 @@
 <view class="login">
-  <view class="logo">🔬</view>
+  <image class="logo-img" src="/images/logo-ai.png" mode="aspectFit" />
   <view class="app-name">实验室一体化管理助手</view>
   <view class="sub">场地预约 · 设备报修 · 业务咨询</view>
 

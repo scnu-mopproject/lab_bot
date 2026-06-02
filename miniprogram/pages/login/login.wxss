@@ -2,7 +2,7 @@
   padding: 120rpx 60rpx;
   text-align: center;
 }
-.logo { font-size: 120rpx; }
+.logo-img { width: 180rpx; height: 180rpx; border-radius: 36rpx; }
 .app-name { font-size: 40rpx; font-weight: 700; margin-top: 20rpx; }
 .sub { color: #888; margin-top: 12rpx; margin-bottom: 80rpx; }
 .login-btn { margin-top: 40rpx; }
