@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.booking import Booking
 from app.models.room import Room
+from app.models.user import User
 
 SLOT_MINUTES = 30
 ACTIVE_STATUSES = ("pending", "approved")  # 占用时段的预约状态
@@ -39,13 +40,19 @@ def overlapping_bookings(db: Session, room_id: int, start: datetime, end: dateti
 
 
 def get_availability(db: Session, room: Room, day: date) -> list[dict]:
-    """生成某天按 30 分钟粒度的时段占用情况。"""
+    """生成某天按 30 分钟粒度的时段占用情况。占用格子标注：师生预约显示预约人姓名，课表显示课程名。"""
     open_t = _parse_hhmm(room.open_time)
     close_t = _parse_hhmm(room.close_time)
     day_start = datetime.combine(day, open_t)
     day_end = datetime.combine(day, close_t)
 
     bookings = overlapping_bookings(db, room.id, day_start, day_end)
+    # 预约人姓名映射（师生预约）
+    user_ids = {b.user_id for b in bookings if b.source == "user"}
+    names: dict[int, str] = {}
+    if user_ids:
+        names = {u.id: u.name for u in
+                 db.scalars(select(User).where(User.id.in_(user_ids))).all()}
 
     slots = []
     cursor = day_start
@@ -56,7 +63,10 @@ def get_availability(db: Session, room: Room, day: date) -> list[dict]:
         for b in bookings:
             if b.start_time < nxt and b.end_time > cursor:
                 available = False
-                label = b.course_name or ("已预约" if b.source == "user" else "占用")
+                if b.source == "user":
+                    label = names.get(b.user_id) or "已预约"
+                else:
+                    label = b.course_name or "占用"
                 break
         slots.append({"start": cursor, "end": nxt, "available": available, "label": label})
         cursor = nxt

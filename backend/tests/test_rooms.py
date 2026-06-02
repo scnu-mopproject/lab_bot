@@ -171,6 +171,16 @@ def test_mine_excludes_course():
     assert not any(b["course_name"] == "高数" for b in mine)
 
 
+def test_availability_shows_booker_name():
+    admin = _login("avadmin", "admin")
+    stu = _login("avstu", "student")  # dev-login 用 sso_id 作为姓名
+    rid = _mk_room(admin, "姓名展示室")
+    _book(stu, rid, "09", "10", day="2031-07-07")
+    av = client.get(f"/api/rooms/{rid}/availability?date=2031-07-07", headers=stu).json()
+    busy = [s for s in av["slots"] if not s["available"]]
+    assert busy and any(s["label"] == "avstu" for s in busy)
+
+
 def test_schedule_template_download():
     admin = _login("tpladmin", "admin")
     r = client.get("/api/admin/schedules/template.xlsx", headers=admin)
