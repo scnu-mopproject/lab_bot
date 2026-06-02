@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# 运行产物（数据库、报告、特征表）
+output/
+*.db
+*.csv
+
+# 用户私有持仓（含真实持仓，勿提交）
+config/positions.json
+
+# 编辑器
+.idea/
+.vscode/
+.DS_Store

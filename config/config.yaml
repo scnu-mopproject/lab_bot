@@ -1,0 +1,61 @@
+# lab_bot 配置文件
+# 所有路径相对于项目根目录（除非为绝对路径）
+
+# 数据源设置
+data:
+  source: akshare        # akshare | mock。akshare 不可用时自动回退到 mock
+  allow_fallback: true   # 真实数据源失败时是否回退到合成数据
+  history_days: 250      # 拉取历史交易数据的回看天数
+  cache_db: output/lab_bot.db   # SQLite 缓存路径
+
+# 股票池：限定分析范围，避免一次性扫描全市场
+universe:
+  mode: index            # index | custom | all
+  index_symbol: "000300"  # 沪深300，作为默认候选池
+  custom_symbols: []     # mode=custom 时使用，如 ["600519", "000001"]
+  max_symbols: 300       # 单次分析的最大股票数（控制耗时）
+
+# 新闻采集
+news:
+  max_items: 200         # 单次采集的财经新闻条数上限
+  keywords:              # 关注的热点关键词（用于情绪/题材打分）
+    - 涨停
+    - 利好
+    - 重组
+    - 业绩预增
+    - 政策
+
+# 特征工程
+features:
+  limit_up_pct: 0.095    # 涨停判定阈值（主板约 10%，留余量）
+
+# 模型
+model:
+  type: gradient_boosting   # gradient_boosting | logistic
+  test_size: 0.2
+  random_state: 42
+  top_k: 10              # 每日输出的候选标的数量
+
+# 回测
+backtest:
+  train_window: 120      # 训练窗口（交易日）
+  hold_days: 1           # 持有天数
+  fee_rate: 0.0013       # 单边交易成本（含印花税+佣金近似）
+
+# 用户持仓与策略
+portfolio:
+  positions_file: config/positions.example.json
+  total_capital: 100000  # 总资金（元）
+  max_position_pct: 0.2  # 单票最大仓位占比
+  stop_loss_pct: 0.07    # 止损线
+  take_profit_pct: 0.15  # 止盈线
+
+# 报告输出
+report:
+  output_dir: output/reports
+  format: markdown       # markdown | html
+
+# 定时调度（cron 表达式，交易日由代码判断）
+schedule:
+  news_crawl: "30 9 * * 1-5"     # 每个工作日 9:30 采集新闻
+  daily_analysis: "30 15 * * 1-5" # 收盘后 15:30 跑分析与报告
