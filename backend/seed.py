@@ -38,7 +38,7 @@ def run() -> None:
     db = SessionLocal()
     try:
         if not db.scalar(select(User).where(User.sso_id == "admin")):
-            db.add(User(sso_id="admin", name="实验室管理员", role="admin", college="计算机学院"))
+            db.add(User(sso_id="admin", name="实验室管理员", role="admin", college="人工智能学院"))
         for r in ROOMS:
             if not db.scalar(select(Room).where(Room.name == r["name"])):
                 db.add(Room(**r))

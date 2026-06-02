@@ -12,7 +12,7 @@ class DevLoginIn(BaseModel):
     sso_id: str
     name: str = "测试用户"
     role: str = "student"
-    college: str | None = "计算机学院"
+    college: str | None = "人工智能学院"
 
 
 class UserOut(BaseModel):

@@ -38,7 +38,7 @@ async def validate(ticket: str) -> SSOUser:
     """校验 CAS ticket，返回用户信息。"""
     if settings.sso_mock:
         # 本地模拟：ticket 即 sso_id，便于联调
-        return SSOUser(sso_id=f"mock-{ticket}", name="模拟用户", role="student", college="计算机学院")
+        return SSOUser(sso_id=f"mock-{ticket}", name="模拟用户", role="student", college="人工智能学院")
 
     url = f"{settings.sso_base_url}/cas/serviceValidate"
     params = {"service": settings.sso_service_url, "ticket": ticket}
