@@ -1,0 +1,23 @@
+# 一键部署后端：docker compose up -d --build
+# 数据库（SQLite）通过 ./backend/data 数据卷持久化，容器重建不丢数据。
+services:
+  backend:
+    build:
+      context: ./backend
+    image: lab-bot-backend:latest
+    container_name: lab-bot-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    # 环境变量从 backend/.env 读取（参考 backend/.env.docker.example）
+    env_file:
+      - ./backend/.env
+    volumes:
+      # 持久化 SQLite 数据库（与 Dockerfile 中 DATABASE_URL 指向的目录一致）
+      - ./backend/data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health'); sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

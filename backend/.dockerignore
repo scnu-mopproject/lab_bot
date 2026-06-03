@@ -1,0 +1,11 @@
+# 不打进镜像的内容
+.venv/
+__pycache__/
+*.pyc
+*.db
+.env
+.pytest_cache/
+tests/
+data/
+run_local.sh
+run_local.bat
