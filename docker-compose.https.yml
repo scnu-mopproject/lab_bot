@@ -1,0 +1,19 @@
+# HTTPS 叠加层：在基础 docker-compose.yml 之上再加一个 Nginx 反向代理。
+# 备案通过、证书就位后启用：
+#   docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+#
+# 启用后对外走 https://你的域名（443），Nginx 把请求转给 backend:8000。
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: lab-bot-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro      # 站点配置（需有 lab_bot.conf）
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro        # 证书 fullchain.pem / privkey.pem
+      - ./deploy/nginx/www:/var/www/certbot:ro          # certbot 校验目录（可选）
