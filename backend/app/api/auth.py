@@ -43,21 +43,30 @@ def _upsert_user(db: Session, *, sso_id: str, name: str, role: str,
 
 @router.get("/sso/login-url")
 def sso_login_url(state: str | None = None):
-    """返回学校统一认证登录地址，前端用 web-view 打开。"""
-    return {"url": sso.login_url(state=state)}
+    """Web 应用统一认证登录地址（浏览器跳转，文档场景 2.1.1）。"""
+    return {"url": sso.web_login_url(state=state)}
+
+
+@router.get("/sso/applet-login-url")
+def sso_applet_login_url(code: str, state: str | None = None):
+    """小程序统一认证登录地址（文档场景 3.2.1）。
+
+    code 为小程序 wx.login 拿到的临时登录凭证；返回的 url 由前端用 web-view 打开。
+    """
+    return {"url": sso.applet_login_url(code, state=state)}
 
 
 @router.get("/sso/callback")
-async def sso_callback(ticket: str, state: str | None = None, db: Session = Depends(get_db)):
-    """CAS 回调：校验 ticket，绑定/创建用户并签发 JWT。"""
+async def sso_callback(code: str, forward: str | None = None, db: Session = Depends(get_db)):
+    """统一认证回调（OAuth2）：用 code 换 token、取用户信息，绑定/创建用户并签发 JWT。"""
     try:
-        sso_user = await sso.validate(ticket)
+        sso_user = await sso.authenticate(code)
     except Exception as e:  # noqa: BLE001
         raise HTTPException(400, f"统一认证校验失败: {e}")
     user = _upsert_user(db, sso_id=sso_user.sso_id, name=sso_user.name,
-                        role=sso_user.role, college=sso_user.college, openid=None)
+                        role=sso_user.role, college=sso_user.college, openid=sso_user.openid)
     token = _issue_token(user)
-    # 重定向回小程序中转页，把 token 带回（实际可改为前端约定的 scheme/页面）
+    # 重定向回小程序 web-view 中转页，把 token 带回（前端在该页将 token 传回小程序后关闭 web-view）
     return RedirectResponse(url=f"/sso-bridge?token={token.access_token}", status_code=302)
 
 
